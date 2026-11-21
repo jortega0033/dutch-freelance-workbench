@@ -219,6 +219,10 @@ To follow one Save button: `static/js/forms.js` (`attachSave`) →
 `static/js/api.js` (`apiMutate`) → `server.py` route → `leads.run_mutation` →
 `db.write_transaction`.
 
+For the layering, the invariants a change must keep, a full workflow trace and the
+difference between the plan and the code, see [docs/architecture.md](docs/architecture.md).
+Coding agents start at [CLAUDE.md](CLAUDE.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

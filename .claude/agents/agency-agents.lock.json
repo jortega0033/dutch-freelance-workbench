@@ -1,0 +1,82 @@
+{
+  "source": "https://github.com/msitarzewski/agency-agents",
+  "license": "MIT (see AGENCY-AGENTS-LICENSE.txt)",
+  "revision": "8ae6164602c95ca78828b148b9052460ee426885",
+  "revision_date": "2026-11-09T00:27:04Z",
+  "fetched": "2026-11-21",
+  "fetch_command": "gh api \"repos/msitarzewski/agency-agents/contents/<upstream_path>?ref=<revision>\"",
+  "roles": [
+    {
+      "file": ".claude/agents/engineering-software-architect.md",
+      "name": "Software Architect",
+      "upstream_path": "engineering/engineering-software-architect.md",
+      "upstream_blob_sha": "1a69148c99b2c170e36e035a0c7a341e98e634e9",
+      "upstream_sha256": "b85121691776147bacde26673e68fbbacd6a7f0816d1ca8e203c264d25ce1d30",
+      "local_change": "added frontmatter line `tools: Read, Grep, Glob`",
+      "tools": "Read, Grep, Glob"
+    },
+    {
+      "file": ".claude/agents/engineering-code-reviewer.md",
+      "name": "Code Reviewer",
+      "upstream_path": "engineering/engineering-code-reviewer.md",
+      "upstream_blob_sha": "fb93291f4b94a8d5687aa1cc0d05741c3352dd22",
+      "upstream_sha256": "7509fcc3ea1dda46511b2801996305bf3d4a125576f9655ff0b63df25602f446",
+      "local_change": "added frontmatter line `tools: Read, Grep, Glob`",
+      "tools": "Read, Grep, Glob"
+    },
+    {
+      "file": ".claude/agents/engineering-codebase-onboarding-engineer.md",
+      "name": "Codebase Onboarding Engineer",
+      "upstream_path": "engineering/engineering-codebase-onboarding-engineer.md",
+      "upstream_blob_sha": "cc36ec153ebe38ebf51515d8591a44e1213e5aa1",
+      "upstream_sha256": "07aa548b45887c3ad768efad5fdbf6e57bea639df4f1b74c7e383142f454e2a1",
+      "local_change": "added frontmatter line `tools: Read, Grep, Glob`",
+      "tools": "Read, Grep, Glob"
+    },
+    {
+      "file": ".claude/agents/testing-reality-checker.md",
+      "name": "Reality Checker",
+      "upstream_path": "testing/testing-reality-checker.md",
+      "upstream_blob_sha": "e534cfbd20d3115d5265387f19db7d3b25649421",
+      "upstream_sha256": "6d32fcdb114233e13902ec6372d50293b120e85d490b5e81d372c29808f988a1",
+      "local_change": "added frontmatter line `tools: Read, Grep, Glob`",
+      "tools": "Read, Grep, Glob"
+    },
+    {
+      "file": ".claude/agents/testing-accessibility-auditor.md",
+      "name": "Accessibility Auditor",
+      "upstream_path": "testing/testing-accessibility-auditor.md",
+      "upstream_blob_sha": "350dc3d468b96015a6b3cdefbb06f4a33f673cb1",
+      "upstream_sha256": "362935907af23839775b9c6162f38c0c5a740542ab4350cb5c5b5a0d9f9a4268",
+      "local_change": "added frontmatter line `tools: Read, Grep, Glob`",
+      "tools": "Read, Grep, Glob"
+    },
+    {
+      "file": ".claude/agents/engineering-backend-architect.md",
+      "name": "Backend Architect",
+      "upstream_path": "engineering/engineering-backend-architect.md",
+      "upstream_blob_sha": "e9272ed505b03f8487fc78715d69847b9a7c0d06",
+      "upstream_sha256": "ac717bde4848d7663fff8a3c7edc711fd119256de6a7ce38c036619372f42c99",
+      "local_change": "none (byte-identical to upstream)",
+      "tools": "inherited (no tools field)"
+    },
+    {
+      "file": ".claude/agents/engineering-frontend-developer.md",
+      "name": "Frontend Developer",
+      "upstream_path": "engineering/engineering-frontend-developer.md",
+      "upstream_blob_sha": "7fc1a355bf6cc53b5f2b8b58db52ae2860fc0616",
+      "upstream_sha256": "1ae4cc10b2e0163bd3ed921ad54080b865cd02e591becd8919b64b73fab06dad",
+      "local_change": "none (byte-identical to upstream)",
+      "tools": "inherited (no tools field)"
+    },
+    {
+      "file": ".claude/agents/engineering-database-reliability-engineer.md",
+      "name": "Database Reliability Engineer",
+      "upstream_path": "engineering/engineering-database-reliability-engineer.md",
+      "upstream_blob_sha": "1025d7626f716091cff18f982bec4758ad59a849",
+      "upstream_sha256": "0096dc3c1b31e33814c509fda43853cc77cef6252bb94da527b833be13b53a5a",
+      "local_change": "none (byte-identical to upstream)",
+      "tools": "inherited (no tools field)"
+    }
+  ]
+}
