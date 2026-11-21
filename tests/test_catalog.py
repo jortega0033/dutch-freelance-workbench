@@ -37,6 +37,11 @@ class BundledCatalogFile(WorkbenchTestCase):
             lambda d: d["items"][0].update(title=""),
             lambda d: d["items"][0].update(title="x" * 121),
             lambda d: d["items"][0].update(skills=[]),
+            lambda d: d["items"][0].update(skills=[{}]),
+            lambda d: d["items"][0].update(skills=[["Python"]]),
+            lambda d: d["items"][0].update(skills=[1]),
+            lambda d: d["items"][0].update(skills=["Python", "Python"]),
+            lambda d: d["items"][0].update(skills="Python"),
             lambda d: d["items"][0].update(engagement_type="full-time"),
             lambda d: d["items"][0].update(country_tag="DE"),
             lambda d: d["items"][0].update(work_mode="anywhere"),
@@ -251,6 +256,18 @@ class CatalogUnavailable(WorkbenchTestCase):
         document["items"][0]["country_tag"] = "DE"
         path.write_text(json.dumps(document), encoding="utf-8")
         self.check(path)
+
+    def test_skills_holding_an_object(self):
+        # PR #7 review: set() on unhashable skills raised TypeError (500) instead of 503
+        path = Path(self.data_dir).parent / "object-skill.json"
+        document = json.loads(discovery.DEFAULT_CATALOG_PATH.read_text(encoding="utf-8"))
+        document["items"][0]["skills"] = [{}]
+        path.write_text(json.dumps(document), encoding="utf-8")
+        self.check(path)
+        self.assertEqual(db_query(self.data_dir, "SELECT COUNT(*) FROM audit WHERE command_type = 'lead.create'"
+                                                 " AND entity_id IN (SELECT id FROM lead WHERE catalog_key IS NOT NULL)"),
+                         [(0,)])
+        self.assertEqual(db_query(self.data_dir, "SELECT COUNT(*) FROM lead WHERE catalog_key IS NOT NULL"), [(0,)])
 
     def test_a_repaired_file_is_picked_up_without_restart(self):
         path = Path(self.data_dir).parent / "later.json"

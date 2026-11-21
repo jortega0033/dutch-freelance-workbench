@@ -670,12 +670,36 @@ async function phaseC() {
   check('Discover marks both saved items with Open lead after a reload',
     (await A.locator(`#open-${X}`).count()) === 1 && (await A.locator(`#open-${Y}`).count()) === 1);
 
-  // ---- catalog cannot load: Discover says so, manual capture still works
+  // ---- catalog cannot load: Discover says so, manual capture still works.
+  // A missing file, then (PR #7 review) a well-formed JSON file whose first item has "skills": [{}].
   await server.stop();
   server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW, catalog: path.join(WORK, 'no-such-catalog.json') });
   await A.goto(base + '/discover');
   await A.waitForSelector('#catalog-unavailable');
-  check('unavailable catalog: Discover says so and offers manual capture', await A.isVisible('#manual-capture-link'));
+  check('missing catalog file: Discover says so and offers Add a lead manually',
+    (await A.isVisible('#manual-capture-link')) && (await A.textContent('#manual-capture-link')).trim() === 'Add a lead manually');
+  await server.stop();
+  const malformed = JSON.parse(fs.readFileSync(path.join(ROOT, 'workbench', 'catalog', 'fictional-opportunities.json'), 'utf8'));
+  malformed.items[0].skills = [{}];
+  const malformedPath = path.join(WORK, 'catalog-object-skill.json');
+  fs.writeFileSync(malformedPath, JSON.stringify(malformed));
+  server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW, catalog: malformedPath });
+  const auditsBefore = sql(dataC, 'SELECT count(*) FROM audit')[0][0];
+  const browse = await A.evaluate(async (u) => { const r = await fetch(u); return { status: r.status, body: await r.json() }; }, base + '/api/v1/catalog');
+  check('malformed skills: browsing answers 503 CATALOG_UNAVAILABLE', browse.status === 503 && browse.body.error.code === 'CATALOG_UNAVAILABLE', browse);
+  const save = await A.evaluate(async ([b, key]) => {
+    const s = await (await fetch(b + '/api/v1/session')).json();
+    const r = await fetch(b + '/api/v1/catalog/items/' + key + '/lead', { method: 'POST', body: '{}', headers: {
+      'Content-Type': 'application/json', 'X-Workbench-Session': s.token, 'Idempotency-Key': crypto.randomUUID() } });
+    return { status: r.status, body: await r.json() };
+  }, [base, 'cat-0005-windmill-devops-retainer']);
+  check('malformed skills: a save answers 503 CATALOG_UNAVAILABLE and writes nothing',
+    save.status === 503 && save.body.error.code === 'CATALOG_UNAVAILABLE' && leadCount() === 2 &&
+    sql(dataC, 'SELECT count(*) FROM audit')[0][0] === auditsBefore, save);
+  await A.goto(base + '/discover');
+  await A.waitForSelector('#catalog-unavailable');
+  check('malformed skills: Discover shows Add a lead manually',
+    (await A.isVisible('#manual-capture-link')) && (await A.textContent('#manual-capture-link')).trim() === 'Add a lead manually');
   await tabTo(A, '#manual-capture-link');
   await A.keyboard.press('Enter');
   await A.waitForSelector('#lead-create-form');
@@ -683,13 +707,20 @@ async function phaseC() {
   await A.keyboard.type('Fictional lead added by hand');
   await A.keyboard.press('Enter');
   await A.waitForURL(/\/leads\/\d+$/);
-  check('unavailable catalog: a lead can still be added manually',
+  const manualId = A.url().split('/').pop();
+  check('malformed skills: a lead can still be added manually',
     leadCount() === 3 && sql(dataC, "SELECT catalog_key FROM lead WHERE label = 'Fictional lead added by hand'")[0][0] === null);
   await A.goto(base + '/');
   await A.waitForSelector('#group-no_action');
-  check('unavailable catalog: the dashboard still works', (await A.getAttribute('#group-no_action', 'data-count')) === '2');
+  check('malformed skills: the dashboard works and lists the manual lead',
+    (await A.getAttribute('#group-no_action', 'data-count')) === '2' &&
+    (await A.locator(`#group-no_action a[href="/leads/${manualId}"]`).count()) === 1);
   await server.stop();
   server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW });
+  await A.goto(base + '/discover');
+  await waitLoaded(A);
+  check('valid catalog again: items and saved state are back', (await A.locator('li.catalog-item').count()) === CATALOG.length &&
+    (await A.locator(`#open-${X}`).count()) === 1);
 
   // ---- layout
   await layoutCheck(A, base, ['/discover', filtered.slice(base.length)], 320, 800, 'Discover 320px');

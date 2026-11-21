@@ -109,8 +109,11 @@ start: one transaction adds the nullable `lead.catalog_key` column and its
 unique index, and existing leads, history, follow-ups, audit rows and retry
 records stay as they were. If the upgrade fails, it is rolled back and the file
 keeps its old schema. The M1 release cannot open an upgraded file (it reports
-an unsupported schema version and leaves the file unchanged), so copy the
-`--data-dir` folder first if you may want to go back.
+an unsupported schema version and leaves the file unchanged). If you may want
+to go back, stop the running app (Ctrl+C) and then copy its whole `--data-dir`
+folder before starting this version. The server takes its port before it
+touches the database, so a launch that fails because the port is busy leaves
+an M1 database as it was.
 
 ## Your data
 

@@ -70,9 +70,11 @@ def parse_catalog(document):
         if not _text(item["title"], validation.LABEL_MAX) or not _text(item["organisation"], validation.LABEL_MAX):
             raise CatalogError(f"{where}: invalid title or organisation")
         skills = item["skills"]
-        if (not isinstance(skills, list) or not skills or len(set(skills)) != len(skills)
-                or not all(_text(skill, SKILL_MAX) for skill in skills)):
+        # check the list and every element before set(), which needs hashable strings
+        if not isinstance(skills, list) or not skills or not all(_text(skill, SKILL_MAX) for skill in skills):
             raise CatalogError(f"{where}: invalid skills")
+        if len(set(skills)) != len(skills):
+            raise CatalogError(f"{where}: duplicate skills")
         if item["engagement_type"] not in ENGAGEMENT_TYPES:
             raise CatalogError(f"{where}: invalid engagement type")
         if item["country_tag"] not in validation.COUNTRY_TAGS or item["work_mode"] not in validation.WORK_MODES:

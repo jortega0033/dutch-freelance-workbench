@@ -1,6 +1,7 @@
 """Issue #1: an M1 (schema v1) database upgrades to v2 with every row unchanged."""
 
 import json
+import socket
 import sqlite3
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from tests.support.harness import TABLES, RunningServer, WorkbenchTestCase, db_f
 from tests.test_process import ProcessTestCase, run_cli
 from tests.support.harness import free_port
 from workbench import db
+from workbench.server import PortUnavailable, create_server
 
 V1_LEAD_COLUMNS = ("id, label, country_tag, work_mode, source_channel, source_label, stage, version,"
                    " next_action_text, next_action_due, created_at_utc, updated_at_utc")
@@ -196,3 +198,75 @@ class UpgradeFromTheCommandLine(ProcessTestCase):
         self.assertIn("could not be upgraded", result.stderr)
         self.assertIn("left unchanged", result.stderr)
         self.assertEqual(Path(path).read_bytes(), before)
+
+
+class StartupOrder(ProcessTestCase):
+    """PR #7 review: the port is taken before the database is prepared, so a
+    launch that cannot listen never upgrades (or otherwise touches) the file,
+    and a launch whose database is rejected gives the port back."""
+
+    def v1_copy(self, name):
+        source = self.root / "source"
+        if not source.exists():
+            server = RunningServer(source)
+            client = server.client
+            self.assertEqual(client.put_profile().status, 200)
+            lead = client.create_lead("Fictional lead").json()["lead"]["id"]
+            self.assertEqual(client.outreach(lead, 1, "Fictional follow-up", "2030-04-12").status, 201)
+            server.stop()
+        return make_v1_database(source, self.root / name)
+
+    def assert_port_free(self, port):
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", port))  # raises if anything still holds the port
+
+    def test_port_in_use_leaves_a_v1_database_untouched(self):
+        path = self.v1_copy("busy")
+        before = path.read_bytes()
+        with socket.socket() as blocker:
+            blocker.bind(("127.0.0.1", 0))
+            blocker.listen(1)
+            port = blocker.getsockname()[1]
+            result = run_cli("--data-dir", str(path.parent), "--port", str(port))
+            with self.assertRaises(PortUnavailable):
+                create_server(path.parent, port, quiet=True)
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertIn("Is another copy already running?", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(pragma(path.parent, "user_version"), 1)
+        self.assertEqual(sorted(p.name for p in path.parent.iterdir()), ["workbench.sqlite3"], "no sidecar files")
+
+    def test_rejected_database_releases_the_port(self):
+        foreign = self.root / "foreign"
+        foreign.mkdir()
+        conn = sqlite3.connect(str(db_file(foreign)))
+        conn.execute("CREATE TABLE unrelated (x)")
+        conn.commit()
+        conn.close()
+        conflicting = self.v1_copy("conflicting").parent
+        conn = sqlite3.connect(str(db_file(conflicting)))
+        conn.execute("ALTER TABLE lead ADD COLUMN catalog_key TEXT")  # makes the upgrade fail
+        conn.commit()
+        conn.close()
+        for data_dir in (foreign, conflicting):
+            with self.subTest(data_dir=data_dir.name):
+                port = free_port()
+                with self.assertRaises(db.DatabaseRejected):
+                    create_server(data_dir, port, quiet=True)
+                self.assert_port_free(port)
+                port = free_port()
+                result = run_cli("--data-dir", str(data_dir), "--port", str(port))
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assert_port_free(port)
+
+    def test_launch_with_a_free_port_upgrades_and_keeps_the_rows(self):
+        path = self.v1_copy("ok")
+        rows = table_rows(path.parent)
+        process = self.launch(path.parent)
+        self.assertEqual(process.client().get("/api/v1/leads").json()["total"], 1)
+        process.stop()
+        self.assertEqual(pragma(path.parent, "user_version"), 2)
+        self.assertEqual(table_rows(path.parent), rows)
+        self.assertEqual(rows["activity"][0][2], "outreach")
+        self.assertEqual(len(rows["idempotency"]), 3)
