@@ -1,6 +1,6 @@
 """TEST-ONLY launcher: the real server with a fixed clock.
 
-    python tests/support/serve_fixed_clock.py --data-dir D --port P --now 2030-04-10T10:00:00Z
+    python tests/support/serve_fixed_clock.py --data-dir D --port P --now 2030-04-10T10:00:00Z [--catalog FILE]
 
 Production `python -m workbench` has no way to reach this.
 """
@@ -21,9 +21,11 @@ def main(argv=None):
     parser.add_argument("--data-dir", required=True)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--now", required=True, help="UTC instant, e.g. 2030-04-10T10:00:00Z")
+    parser.add_argument("--catalog", help="catalog JSON file to serve instead of the bundled one")
     args = parser.parse_args(argv)
 
-    server = create_server(args.data_dir, args.port, clock=FixedClock(args.now))
+    extra = {"catalog_path": args.catalog} if args.catalog else {}
+    server = create_server(args.data_dir, args.port, clock=FixedClock(args.now), **extra)
     print(f"Dutch Freelance Workbench {__version__} (M1) [FIXED CLOCK {args.now}]", flush=True)
     print(f"URL:      http://127.0.0.1:{server.server_port}/", flush=True)
     print(f"Database: {server.db_path}", flush=True)

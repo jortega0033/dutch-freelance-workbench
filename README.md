@@ -45,7 +45,24 @@ download and no build step.
   restart) and a minimal audit row (command, record, resulting version, time,
   stage change). The audit holds no labels, journal text, keys or request bodies.
 
-Not in M1 (planned as follow-up GitHub issues): opportunity catalog, closing/reopening
+### Discover (after M1)
+
+- **Discover** browses a small catalog of fictional opportunities that ships
+  with the source (`workbench/catalog/fictional-opportunities.json`). Filter it
+  by skill, engagement type (hourly contract, fixed scope, retainer),
+  counterparty country and work mode. Filters combine with AND and live in the
+  URL. Browsing never creates or changes anything.
+- **Save as lead** turns an item into an ordinary `new` lead through the same
+  validation as manual capture: the item title becomes the label, its country
+  and work mode are copied, the source channel is `platform` and the source
+  label is the item's organisation. The lead stores the item's stable catalog
+  key, and the database allows one lead per key, so a retry, a second tab or two
+  simultaneous saves return the existing lead instead of a duplicate. A saved
+  item shows **Open lead**.
+- If the catalog file cannot be loaded, Discover says so and links to manual
+  lead capture; everything else keeps working.
+
+Not included yet (planned as follow-up GitHub issues): closing/reopening
 leads and later stages, versioned terms, project handoff, reports and CSV,
 backup and restore, and invoicing.
 
@@ -86,6 +103,14 @@ Options:
 
 If the database file is corrupt or belongs to something else, the server
 reports the problem, exits, and leaves the file untouched.
+
+A database created by M1 (schema version 1) is upgraded in place on the first
+start: one transaction adds the nullable `lead.catalog_key` column and its
+unique index, and existing leads, history, follow-ups, audit rows and retry
+records stay as they were. If the upgrade fails, it is rolled back and the file
+keeps its old schema. The M1 release cannot open an upgraded file (it reports
+an unsupported schema version and leaves the file unchanged), so copy the
+`--data-dir` folder first if you may want to go back.
 
 ## Your data
 
@@ -144,6 +169,7 @@ python3 -m unittest discover -s tests -t .
 
 It covers settings, lead capture and search, the stage and follow-up rules,
 dashboard buckets, Amsterdam date boundaries and daylight-saving changes,
+catalog browsing and duplicate-safe saving, the upgrade from an M1 database,
 idempotent replays (also after a restart), stale-version conflicts, rollback
 after injected failures, storage contention, and local request security.
 The server takes its clock and a failure-injection hook as constructor
@@ -155,8 +181,10 @@ failure injection.
 
 `tests/browser/acceptance.mjs` drives a real local Google Chrome through the
 main workflow by keyboard, checks two-tab conflicts, a lost response, restarts,
-Amsterdam date boundaries, narrow layouts, and verifies that the app makes no
-external requests while all non-loopback traffic is blocked. It is test tooling
+Amsterdam date boundaries, narrow layouts, Discover (filters, Save as lead
+from two tabs, Open lead, outreach, dashboard, unavailable catalog), and
+verifies that the app makes no external requests while all non-loopback
+traffic is blocked. It is test tooling
 only and needs Node.js, a globally installed `playwright` package and Chrome:
 
 ```sh
@@ -174,6 +202,8 @@ workbench/server.py     HTTP server, routing, request checks, static files
 workbench/leads.py      write commands; one save = one transaction (see its docstring)
 workbench/db.py         schema, startup checks, BEGIN IMMEDIATE transactions, idempotency, audit
 workbench/queries.py    dashboard, lead list and detail reads
+workbench/discovery.py  the bundled fictional catalog: loading, validation, filters
+workbench/catalog/      the catalog JSON file
 workbench/validation.py strict request validation
 workbench/dates.py      clock and Amsterdam business date
 workbench/errors.py     the API error type

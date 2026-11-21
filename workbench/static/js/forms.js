@@ -133,6 +133,12 @@ export function attachSave(opts) {
         return;
       }
       case 'busy':
+        if (result.error && result.error.code === 'CATALOG_UNAVAILABLE') {
+          pending = null;
+          showMessage('error', 'The fictional catalog could not be loaded, so nothing was saved. You can still add a lead manually.',
+            h('p', null, link('/leads/new', 'Add a lead manually')));
+          return;
+        }
         // 503 means nothing was stored, so a fresh Save is safe as well
         showPanel('busy-panel', 'warn', 'Storage is busy', 'The server was busy and nothing was saved. Retry the same save, or discard and reload.');
         return;
