@@ -116,6 +116,7 @@ function renderLead(main, ctx, id, data, flash, back) {
       h('dt', null, 'Work mode'), h('dd', { id: 'lead-work-mode' }, optionLabel('mode', lead.work_mode)),
       h('dt', null, 'Source channel'), h('dd', { id: 'lead-source-channel' }, optionLabel('source', lead.source_channel)),
       h('dt', null, 'Source label'), h('dd', { id: 'lead-source-label' }, lead.source_label || 'None'),
+      ...(lead.catalog_key ? [h('dt', null, 'Catalog item'), h('dd', { id: 'lead-catalog-key' }, lead.catalog_key)] : []),
       h('dt', null, 'Created (UTC)'), h('dd', null, lead.created_at_utc),
       h('dt', null, 'Updated (UTC)'), h('dd', null, lead.updated_at_utc)));
 

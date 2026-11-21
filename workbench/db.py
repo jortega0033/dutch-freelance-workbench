@@ -14,7 +14,7 @@ from pathlib import Path
 from .errors import ApiError
 
 APPLICATION_ID = 1145459522  # 0x44465742, "DFWB"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DB_FILENAME = "workbench.sqlite3"
 REQUIRED_TABLES = {"profile", "lead", "activity", "audit", "idempotency"}
 
@@ -73,6 +73,20 @@ SCHEMA_STATEMENTS = (
 )
 
 
+# Upgrades, applied in order inside one transaction. A fresh database runs
+# SCHEMA_STATEMENTS (the v1 schema) and then every upgrade, so new and upgraded
+# databases end up with the same schema.
+UPGRADES = {
+    # v1 (M1) -> v2: leads saved from the bundled catalog remember its stable key.
+    # NULL for manual leads; the unique index means one lead per catalog item.
+    2: (
+        "ALTER TABLE lead ADD COLUMN catalog_key TEXT"
+        " CHECK (catalog_key IS NULL OR length(catalog_key) BETWEEN 1 AND 64)",
+        "CREATE UNIQUE INDEX lead_catalog_key ON lead(catalog_key) WHERE catalog_key IS NOT NULL",
+    ),
+}
+
+
 class DatabaseRejected(Exception):
     """The database file is corrupt or not ours. It has been left untouched."""
 
@@ -93,8 +107,11 @@ def prepare_database(data_dir):
     if not path.exists() or path.stat().st_size == 0:
         _initialise(path)
         return path
-    if _check_without_leftovers(path) == "empty":
+    status = _check_without_leftovers(path)
+    if status == "empty":
         _initialise(path)
+    elif status == "upgrade":
+        _upgrade(path)
     return path
 
 
@@ -117,7 +134,7 @@ def _check_without_leftovers(path):
 
 
 def _check_existing(path):
-    """Inspect an existing file read-only. Returns "ok" or "empty"; raises DatabaseRejected."""
+    """Inspect an existing file read-only. Returns "ok", "empty" or "upgrade"; raises DatabaseRejected."""
     uri = path.as_uri() + "?mode=ro"
     try:
         conn = sqlite3.connect(uri, uri=True, timeout=5.0)
@@ -141,11 +158,11 @@ def _check_existing(path):
         return "empty"  # a valid but blank SQLite file
     if application_id != APPLICATION_ID:
         raise DatabaseRejected("the file is not a Dutch Freelance Workbench database", path)
-    if user_version != SCHEMA_VERSION:
+    if not 1 <= user_version <= SCHEMA_VERSION:
         raise DatabaseRejected(f"unsupported database schema version {user_version}", path)
     if not REQUIRED_TABLES <= tables:
         raise DatabaseRejected("the database is missing required tables", path)
-    return "ok"
+    return "ok" if user_version == SCHEMA_VERSION else "upgrade"
 
 
 def _initialise(path):
@@ -156,12 +173,41 @@ def _initialise(path):
         try:
             for statement in SCHEMA_STATEMENTS:
                 conn.execute(statement)
+            for version in sorted(UPGRADES):
+                for statement in UPGRADES[version]:
+                    conn.execute(statement)
             conn.execute(f"PRAGMA application_id = {APPLICATION_ID}")
             conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
             conn.execute("COMMIT")
         except BaseException:
             conn.execute("ROLLBACK")
             raise
+    finally:
+        conn.close()
+
+
+def _upgrade(path):
+    """Bring an older schema up to SCHEMA_VERSION in one transaction.
+
+    Existing rows are not touched: upgrades only add nullable columns and
+    indexes. On any failure everything is rolled back and the file keeps its
+    old schema.
+    """
+    conn = sqlite3.connect(str(path), timeout=5.0, isolation_level=None)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            current = conn.execute("PRAGMA user_version").fetchone()[0]
+            for version in range(current + 1, SCHEMA_VERSION + 1):
+                for statement in UPGRADES[version]:
+                    conn.execute(statement)
+            conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+            conn.execute("COMMIT")
+        except BaseException:
+            conn.execute("ROLLBACK")
+            raise
+    except sqlite3.Error:
+        raise DatabaseRejected("the database could not be upgraded to the current schema", path) from None
     finally:
         conn.close()
 
@@ -191,6 +237,7 @@ class Context:
     clock: object
     faults: object
     busy_timeout_ms: int = 5000
+    catalog: object = None  # discovery.Catalog: the bundled fictional catalog
 
     def connect(self):
         return connect(self.db_path, self.busy_timeout_ms)

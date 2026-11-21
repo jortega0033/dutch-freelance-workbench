@@ -9,7 +9,7 @@ from . import dates
 
 LEAD_COLUMNS = (
     "id, label, country_tag, work_mode, source_channel, source_label, stage, version,"
-    " next_action_text, next_action_due, created_at_utc, updated_at_utc"
+    " next_action_text, next_action_due, created_at_utc, updated_at_utc, catalog_key"
 )
 BUCKET_ORDER = ("overdue", "today", "upcoming", "no_action")
 
@@ -46,6 +46,7 @@ def lead_dict(row, today):
         "bucket": bucket_for(row["next_action_due"], today),
         "created_at_utc": row["created_at_utc"],
         "updated_at_utc": row["updated_at_utc"],
+        "catalog_key": row["catalog_key"],
     }
 
 

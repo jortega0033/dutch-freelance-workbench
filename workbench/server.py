@@ -16,7 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from . import dates, db, leads, queries, validation
+from . import dates, db, discovery, leads, queries, validation
 from .errors import ApiError
 from .faults import NoFaults
 
@@ -58,6 +58,7 @@ PAGE_ROUTES = (
     re.compile(r"/leads/new"),
     re.compile(r"/leads/[0-9]{1,18}"),
     re.compile(r"/settings"),
+    re.compile(r"/discover"),
 )
 
 
@@ -100,6 +101,13 @@ def _read_lead(app, match, query):
         return {"business_date": today, "lead": lead, "activities": queries.lead_activities(conn, lead_id)}
 
 
+def _read_catalog(app, match, query):
+    catalog = app.ctx.catalog
+    filters = discovery.parse_filters(query, catalog)
+    with app.ctx.read() as conn:
+        return discovery.browse(conn, catalog, filters)
+
+
 def _read_dashboard(app, match, query):
     with app.ctx.read() as conn:
         return queries.dashboard(conn, app.today())
@@ -119,6 +127,8 @@ ROUTES = (
     ("PUT", re.compile(r"/api/v1/leads/([0-9]{1,18})/next-action"), leads.set_next_action, True),
     ("POST", re.compile(r"/api/v1/leads/([0-9]{1,18})/stage"), leads.change_stage, True),
     ("GET", re.compile(r"/api/v1/dashboard"), _read_dashboard, False),
+    ("GET", re.compile(r"/api/v1/catalog"), _read_catalog, False),
+    ("POST", re.compile(r"/api/v1/catalog/items/(cat-[a-z0-9-]{1,60})/lead"), leads.save_catalog_item, True),
 )
 
 
@@ -150,13 +160,19 @@ class WorkbenchServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = False  # on Windows SO_REUSEADDR would let a second server share the port
 
-    def __init__(self, address, ctx, static_dir, quiet):
-        self.ctx = ctx
+    def __init__(self, address, static_dir, quiet):
+        # Creates the socket only; create_server binds, prepares the database,
+        # then listens.
+        self.ctx = None
+        self.db_path = None
         self.static_dir = Path(static_dir).resolve()
         self.quiet = quiet
         self.session_token = secrets.token_urlsafe(32)
+        super().__init__(address, Handler, bind_and_activate=False)
+
+    def attach(self, ctx):
+        self.ctx = ctx
         self.db_path = ctx.db_path
-        super().__init__(address, Handler)
 
     def today(self):
         """Current Amsterdam business date as 'YYYY-MM-DD'."""
@@ -169,18 +185,33 @@ class WorkbenchServer(ThreadingHTTPServer):
 
 
 def create_server(data_dir, port, clock=dates.SystemClock(), faults=NoFaults(), quiet=False,
-                  busy_timeout_ms=5000, static_dir=DEFAULT_STATIC_DIR):
+                  busy_timeout_ms=5000, static_dir=DEFAULT_STATIC_DIR,
+                  catalog_path=discovery.DEFAULT_CATALOG_PATH):
     """Build (but do not start) the server. Raises db.DatabaseRejected or PortUnavailable.
+
+    The port is bound first and kept, and only then is the database prepared
+    (which may upgrade its schema). So a launch that cannot get its port
+    leaves the database file exactly as it was, and no other process can take
+    the port between the check and the upgrade. The socket listens only after
+    the database is ready; if anything fails it is closed and the port is free
+    again. Requests are served once the caller runs serve_forever().
 
     Only data_dir and port are reachable from the command line; the other
     arguments exist for tests.
     """
-    db_path = db.prepare_database(data_dir)
-    ctx = db.Context(db_path, clock, faults, busy_timeout_ms)
+    server = WorkbenchServer(("127.0.0.1", port), static_dir, quiet)
     try:
-        return WorkbenchServer(("127.0.0.1", port), ctx, static_dir, quiet)
-    except OSError as exc:
-        raise PortUnavailable(port, exc) from exc
+        try:
+            server.server_bind()
+        except OSError as exc:
+            raise PortUnavailable(port, exc) from exc
+        db_path = db.prepare_database(data_dir)
+        server.attach(db.Context(db_path, clock, faults, busy_timeout_ms, discovery.Catalog(catalog_path)))
+        server.server_activate()
+    except BaseException:
+        server.server_close()
+        raise
+    return server
 
 
 # --- request handler
@@ -243,8 +274,11 @@ class Handler(BaseHTTPRequestHandler):
             function, is_write, match = _find_route(method, path)
             if not is_write:
                 raise ApiError(405, "METHOD_NOT_ALLOWED", "Method not allowed.")
-            lead_id = int(match.group(1)) if match.groups() else None
-            result = leads.run_mutation(app.ctx, method, path, key, body, function, lead_id)
+            # the path id: a lead id (digits) or a catalog key ("cat-...")
+            target = match.group(1) if match.groups() else None
+            if target is not None and target.isdigit():
+                target = int(target)
+            result = leads.run_mutation(app.ctx, method, path, key, body, function, target)
             headers = {"Idempotent-Replayed": "true"} if result.replayed else {}
             self._send(result.status, result.body_text.encode("utf-8"), "application/json; charset=utf-8", headers)
             return

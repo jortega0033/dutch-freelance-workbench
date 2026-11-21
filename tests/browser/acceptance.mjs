@@ -1,6 +1,6 @@
 // Optional real-browser acceptance run for M1 (T12 plus browser parts of T03,
-// T09, T10, T11 and T15). Test tooling only: the app itself has no Node or
-// Playwright dependency.
+// T09, T10, T11 and T15) and the Discover screen (issue #1, phase C). Test
+// tooling only: the app itself has no Node or Playwright dependency.
 //
 // Requirements: Node 18+, a globally installed `playwright` package and a local
 // Google Chrome. Run from the repository root:
@@ -26,6 +26,7 @@ const PY = process.env.WORKBENCH_PYTHON || 'python';
 const WORK = fs.mkdtempSync(path.join(os.tmpdir(), 'dfw-acceptance-'));
 const PORT_A = 18781;
 const PORT_B = 18782;
+const PORT_C = 18783;
 const BLOCK_ARGS = [
   // Every non-loopback request goes to a dead proxy; Chrome always connects to
   // loopback directly, so the app keeps working.
@@ -46,9 +47,10 @@ function check(name, ok, detail) {
 
 // ---------------------------------------------------------------- servers
 
-function startServer({ dataDir, port, now }) {
+function startServer({ dataDir, port, now, catalog }) {
   const args = now
-    ? ['tests/support/serve_fixed_clock.py', '--data-dir', dataDir, '--port', String(port), '--now', now]
+    ? ['tests/support/serve_fixed_clock.py', '--data-dir', dataDir, '--port', String(port), '--now', now,
+      ...(catalog ? ['--catalog', catalog] : [])]
     : ['-m', 'workbench', '--data-dir', dataDir, '--port', String(port)];
   const proc = spawn(PY, args, { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
   let out = '';
@@ -537,9 +539,206 @@ async function phaseB() {
   check('demo/test directories are independent (phase B data has one lead)', sql(dataB, 'SELECT count(*) FROM lead')[0][0] === 1);
 }
 
+// ---------------------------------------------------------------- phase C: Discover (issue #1)
+
+const CATALOG = JSON.parse(fs.readFileSync(path.join(ROOT, 'workbench', 'catalog', 'fictional-opportunities.json'), 'utf8')).items;
+
+async function waitLoaded(page) {
+  await page.waitForSelector('main h1');
+  await page.waitForFunction(() => !document.querySelector('main')?.textContent.includes('Loading…'));
+}
+
+async function phaseC() {
+  const dataC = path.join(WORK, 'data-c');
+  const NOW = '2030-04-10T10:00:00Z';
+  let server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW });
+  const base = server.base;
+  const { ctx } = await launch('profile-c-discover', 'Europe/Amsterdam');
+  const reqs = watchRequests(ctx, 'phaseC');
+  await proveIsolation(ctx, base, 'phaseC');
+  const leadCount = () => sql(dataC, 'SELECT count(*) FROM lead')[0][0];
+  const createAudits = () => sql(dataC, "SELECT count(*) FROM audit WHERE command_type = 'lead.create'")[0][0];
+  const A = await appPage(ctx, 'discoverA');
+
+  // ---- browsing before setup: items visible, nothing to save, nothing written
+  await A.goto(base + '/discover');
+  await waitLoaded(A);
+  check('Discover lists the whole bundled catalog', (await A.locator('li.catalog-item').count()) === CATALOG.length);
+  check('without a profile Discover explains why it cannot save yet',
+    (await A.isVisible('#profile-required')) && (await A.locator('#catalog-list form').count()) === 0);
+
+  // ---- setup, then reach Discover from the navigation by keyboard
+  await A.goto(base + '/settings');
+  await tabTo(A, '#settings-form-display_label');
+  await A.keyboard.type('Fictional Discover Studio');
+  await A.keyboard.press('Enter');
+  await waitText(A, '#save-result', 'Settings saved');
+  await tabTo(A, 'nav a[href="/discover"]');
+  await A.keyboard.press('Enter');
+  await A.waitForSelector('#catalog-filter-form');
+  await waitLoaded(A);
+
+  // ---- filter by all four filters, reaching each control with the keyboard
+  const filters = { skill: 'Python', engagement: 'fixed-scope', country: 'NL', mode: 'remote' };
+  const expected = CATALOG.filter((i) => i.skills.includes(filters.skill) && i.engagement_type === filters.engagement &&
+    i.country_tag === filters.country && i.work_mode === filters.mode).map((i) => i.key);
+  for (const [name, value] of Object.entries(filters)) {
+    await tabTo(A, `#catalog-filter-form-${name}`);
+    await A.selectOption(`#catalog-filter-form-${name}`, value);
+  }
+  await tabTo(A, '#catalog-filter-form button[type=submit]');
+  await A.keyboard.press('Enter');
+  await A.waitForURL(/\/discover\?/);
+  await waitLoaded(A);
+  const shownKeys = await A.locator('li.catalog-item').evaluateAll((els) => els.map((e) => e.dataset.catalogKey));
+  check('filters by skill, engagement type, country and work mode combine with AND',
+    JSON.stringify(shownKeys) === JSON.stringify(expected) && expected.length === 2, { url: A.url(), shownKeys, expected });
+  check('the filters live in the URL', A.url().endsWith('/discover?skill=Python&engagement=fixed-scope&country=NL&mode=remote'), A.url());
+  const filtered = A.url();
+  await A.selectOption('#catalog-filter-form-country', 'other');
+  await A.click('#catalog-filter-form button[type=submit]');
+  await A.waitForURL(/country=other/);
+  await waitLoaded(A);
+  check('a filter with no matches says so', await A.isVisible('#no-matches'));
+  await A.goBack();
+  await A.waitForURL(filtered);
+  await waitLoaded(A);
+  check('Back restores the filtered catalog', A.url() === filtered && (await A.locator('li.catalog-item').count()) === 2);
+  check('browsing and filtering created no leads and no audit rows', leadCount() === 0 && createAudits() === 0);
+
+  // ---- two-tab duplicate save: tab A saves, tab B still shows "Save as lead"
+  const [X, Y] = expected;
+  const titleX = CATALOG.find((i) => i.key === X).title;
+  const B = await appPage(ctx, 'discoverB');
+  await B.goto(filtered);
+  await waitLoaded(B);
+  check('tab B shows the unsaved item', (await B.locator(`#save-${X} button`).count()) === 1);
+  await tabTo(A, `#save-${X} button[type=submit]`);
+  await A.keyboard.press('Enter');
+  await A.waitForSelector(`#open-${X}`);
+  await A.waitForFunction((id) => document.activeElement && document.activeElement.id === id, `open-${X}`);
+  await waitText(A, '#status', 'Saved');
+  check('tab A: Save as lead creates the lead, then shows Open lead with focus on it', leadCount() === 1 && createAudits() === 1);
+  await B.click(`#save-${X} button[type=submit]`);
+  await B.waitForSelector(`#open-${X}`);
+  await waitText(B, '#status', 'no duplicate was created');
+  const rowsX = sql(dataC, `SELECT id, label, source_channel, stage, version FROM lead WHERE catalog_key = '${X}'`);
+  check('tab B (stale) gets the existing lead back: still one lead and one lead.create audit',
+    rowsX.length === 1 && leadCount() === 1 && createAudits() === 1, rowsX);
+  const hrefA = await A.getAttribute(`#open-${X}`, 'href');
+  const hrefB = await B.getAttribute(`#open-${X}`, 'href');
+  check('both tabs link to the same lead', hrefA === hrefB && hrefA === `/leads/${rowsX[0][0]}`, { hrefA, hrefB });
+  check('the saved lead used the lead-creation rules', rowsX[0][1] === titleX && rowsX[0][2] === 'platform' &&
+    rowsX[0][3] === 'new' && rowsX[0][4] === 1, rowsX[0]);
+
+  // ---- both tabs press Save on the same item at the same moment
+  await Promise.all([A.locator(`#save-${Y} button[type=submit]`).click(), B.locator(`#save-${Y} button[type=submit]`).click()]);
+  await Promise.all([A.waitForSelector(`#open-${Y}`), B.waitForSelector(`#open-${Y}`)]);
+  check('simultaneous saves from two tabs create one lead',
+    sql(dataC, `SELECT count(*) FROM lead WHERE catalog_key = '${Y}'`)[0][0] === 1 && leadCount() === 2 && createAudits() === 2);
+  await B.close();
+
+  // ---- Open lead -> first outreach -> dashboard, by keyboard
+  await tabTo(A, `#open-${X}`);
+  await A.keyboard.press('Enter');
+  await A.waitForURL(/\/leads\/\d+$/);
+  await A.waitForSelector('#lead-stage');
+  check('Open lead shows the saved lead with its catalog key',
+    (await A.textContent('main h1')).includes(titleX) && (await A.textContent('#lead-catalog-key')).includes(X) &&
+    (await A.textContent('#lead-stage')).includes('New'));
+  await tabTo(A, '#activity-form-summary');
+  await A.keyboard.type('Sent a fictional introduction about the API hardening.');
+  await tabTo(A, '#activity-form-next_action_text');
+  await A.keyboard.type('Check for the fictional reply');
+  await tabTo(A, '#activity-form-next_action_due_date');
+  await typeDate(A, '2030-04-11');
+  await tabTo(A, '#activity-form button[type=submit]');
+  await A.keyboard.press('Enter');
+  await waitText(A, '#lead-stage', 'Contacted');
+  check('first outreach moves the saved lead to Contacted, version 2',
+    (await A.textContent('#lead-version')).trim() === '2' && (await A.locator('#activity-list li').count()) === 1);
+  await tabTo(A, 'nav a[href="/"]');
+  await A.keyboard.press('Enter');
+  await A.waitForSelector('#group-upcoming');
+  const counts = {};
+  for (const g of ['overdue', 'today', 'upcoming', 'no_action']) counts[g] = await A.getAttribute(`#group-${g}`, 'data-count');
+  check('dashboard: the contacted lead is Upcoming, the other saved lead has No action',
+    counts.upcoming === '1' && counts.no_action === '1' && counts.overdue === '0' && counts.today === '0' &&
+    (await A.locator(`#group-upcoming a[href="${hrefA}"]`).count()) === 1, counts);
+  await A.goto(base + '/discover');
+  await waitLoaded(A);
+  check('Discover marks both saved items with Open lead after a reload',
+    (await A.locator(`#open-${X}`).count()) === 1 && (await A.locator(`#open-${Y}`).count()) === 1);
+
+  // ---- catalog cannot load: Discover says so, manual capture still works.
+  // A missing file, then (PR #7 review) a well-formed JSON file whose first item has "skills": [{}].
+  await server.stop();
+  server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW, catalog: path.join(WORK, 'no-such-catalog.json') });
+  await A.goto(base + '/discover');
+  await A.waitForSelector('#catalog-unavailable');
+  check('missing catalog file: Discover says so and offers Add a lead manually',
+    (await A.isVisible('#manual-capture-link')) && (await A.textContent('#manual-capture-link')).trim() === 'Add a lead manually');
+  await server.stop();
+  const malformed = JSON.parse(fs.readFileSync(path.join(ROOT, 'workbench', 'catalog', 'fictional-opportunities.json'), 'utf8'));
+  malformed.items[0].skills = [{}];
+  const malformedPath = path.join(WORK, 'catalog-object-skill.json');
+  fs.writeFileSync(malformedPath, JSON.stringify(malformed));
+  server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW, catalog: malformedPath });
+  const auditsBefore = sql(dataC, 'SELECT count(*) FROM audit')[0][0];
+  const browse = await A.evaluate(async (u) => { const r = await fetch(u); return { status: r.status, body: await r.json() }; }, base + '/api/v1/catalog');
+  check('malformed skills: browsing answers 503 CATALOG_UNAVAILABLE', browse.status === 503 && browse.body.error.code === 'CATALOG_UNAVAILABLE', browse);
+  const save = await A.evaluate(async ([b, key]) => {
+    const s = await (await fetch(b + '/api/v1/session')).json();
+    const r = await fetch(b + '/api/v1/catalog/items/' + key + '/lead', { method: 'POST', body: '{}', headers: {
+      'Content-Type': 'application/json', 'X-Workbench-Session': s.token, 'Idempotency-Key': crypto.randomUUID() } });
+    return { status: r.status, body: await r.json() };
+  }, [base, 'cat-0005-windmill-devops-retainer']);
+  check('malformed skills: a save answers 503 CATALOG_UNAVAILABLE and writes nothing',
+    save.status === 503 && save.body.error.code === 'CATALOG_UNAVAILABLE' && leadCount() === 2 &&
+    sql(dataC, 'SELECT count(*) FROM audit')[0][0] === auditsBefore, save);
+  await A.goto(base + '/discover');
+  await A.waitForSelector('#catalog-unavailable');
+  check('malformed skills: Discover shows Add a lead manually',
+    (await A.isVisible('#manual-capture-link')) && (await A.textContent('#manual-capture-link')).trim() === 'Add a lead manually');
+  await tabTo(A, '#manual-capture-link');
+  await A.keyboard.press('Enter');
+  await A.waitForSelector('#lead-create-form');
+  await tabTo(A, '#lead-create-form [name=label]');
+  await A.keyboard.type('Fictional lead added by hand');
+  await A.keyboard.press('Enter');
+  await A.waitForURL(/\/leads\/\d+$/);
+  const manualId = A.url().split('/').pop();
+  check('malformed skills: a lead can still be added manually',
+    leadCount() === 3 && sql(dataC, "SELECT catalog_key FROM lead WHERE label = 'Fictional lead added by hand'")[0][0] === null);
+  await A.goto(base + '/');
+  await A.waitForSelector('#group-no_action');
+  check('malformed skills: the dashboard works and lists the manual lead',
+    (await A.getAttribute('#group-no_action', 'data-count')) === '2' &&
+    (await A.locator(`#group-no_action a[href="/leads/${manualId}"]`).count()) === 1);
+  await server.stop();
+  server = await startServer({ dataDir: dataC, port: PORT_C, now: NOW });
+  await A.goto(base + '/discover');
+  await waitLoaded(A);
+  check('valid catalog again: items and saved state are back', (await A.locator('li.catalog-item').count()) === CATALOG.length &&
+    (await A.locator(`#open-${X}`).count()) === 1);
+
+  // ---- layout
+  await layoutCheck(A, base, ['/discover', filtered.slice(base.length)], 320, 800, 'Discover 320px');
+  await layoutCheck(A, base, ['/discover'], 640, 450, 'Discover 200% zoom');
+  await A.setViewportSize({ width: 1280, height: 900 });
+
+  const appReqs = reqs.filter((r) => r.page === 'discoverA' || r.page === 'discoverB');
+  const external = appReqs.filter((r) => !r.url.startsWith(base + '/'));
+  check('Discover tabs made only loopback requests', external.length === 0 && appReqs.length > 0,
+    { appRequests: appReqs.length, external });
+  await ctx.close();
+  await server.stop();
+}
+
 try {
   const { dataA } = await phaseA();
   await phaseB();
+  await phaseC();
   check('phase A data unaffected by phase B', sql(dataA, 'SELECT count(*) FROM lead')[0][0] === 3);
 } catch (e) {
   check('acceptance run completed without an exception', false, String(e && e.stack || e));

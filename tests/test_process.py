@@ -199,7 +199,7 @@ class T09StartupFailures(ProcessTestCase):
         conn = sqlite3.connect(str(self.root / "fresh" / "workbench.sqlite3"))
         try:
             self.assertEqual(conn.execute("PRAGMA application_id").fetchone()[0], 1145459522)
-            self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 1)
+            self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 2)
             self.assertEqual(conn.execute("PRAGMA journal_mode").fetchone()[0], "wal")
         finally:
             conn.close()

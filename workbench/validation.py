@@ -128,6 +128,13 @@ def _optional_source_label(value, field, problems):
 # --- payload parsers
 
 
+def parse_empty_body(body):
+    """Commands that take no fields accept only {}."""
+    problems = Problems()
+    check_keys(body, set(), set(), problems)
+    problems.raise_if_any()
+
+
 def parse_profile(body):
     """-> (version, display_label)"""
     problems = Problems()

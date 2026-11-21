@@ -126,6 +126,9 @@ button[disabled] { opacity: 0.6; cursor: not-allowed; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0 1rem; }
 .filter-grid input, .filter-grid select { max-width: none; }
+.catalog-item h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.catalog-summary { margin: 0.25rem 0 0; }
+.catalog-item .actions { margin-top: 0.5rem; align-items: center; }
 dl.details { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.1rem 1rem; margin: 0; }
 dl.details dt { font-weight: 600; margin-top: 0.5rem; }
 dl.details dd { margin: 0; }

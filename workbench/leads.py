@@ -16,7 +16,7 @@ Any exception rolls everything back, so a failed save leaves no trace.
 import json
 from dataclasses import dataclass
 
-from . import dates, db, queries, validation
+from . import dates, db, discovery, queries, validation
 from .errors import ApiError
 
 
@@ -143,20 +143,53 @@ def save_profile(conn, ctx, lead_id, body):
     return 200, {"profile": queries.profile_dict(conn)}
 
 
-def create_lead(conn, ctx, lead_id, body):
-    clean = validation.parse_lead_create(body)
-    stamp, today = _now(ctx)
+def _require_profile(conn):
     if not queries.has_profile(conn):
         raise ApiError(409, "PROFILE_REQUIRED", "Set up your profile in Settings before adding leads.")
+
+
+def _insert_lead(conn, clean, stamp, catalog_key=None):
+    """The lead-creation rule shared by manual capture and catalog saves:
+    stage new, version 1, no follow-up, one lead.create audit row."""
     cursor = conn.execute(
         "INSERT INTO lead (label, country_tag, work_mode, source_channel, source_label, stage, version,"
-        " created_at_utc, updated_at_utc) VALUES (?, ?, ?, ?, ?, 'new', 1, ?, ?)",
+        " created_at_utc, updated_at_utc, catalog_key) VALUES (?, ?, ?, ?, ?, 'new', 1, ?, ?, ?)",
         (clean["label"], clean["country_tag"], clean["work_mode"], clean["source_channel"],
-         clean["source_label"], stamp, stamp),
+         clean["source_label"], stamp, stamp, catalog_key),
     )
     new_id = cursor.lastrowid
     db.insert_audit(conn, "lead.create", "lead", new_id, 1, stamp, None, "new")
+    return new_id
+
+
+def create_lead(conn, ctx, lead_id, body):
+    clean = validation.parse_lead_create(body)
+    stamp, today = _now(ctx)
+    _require_profile(conn)
+    new_id = _insert_lead(conn, clean, stamp)
     return 201, {"lead": _lead_response(conn, new_id, today)}
+
+
+def save_catalog_item(conn, ctx, catalog_key, body):
+    """Save a catalog item as a lead, at most once per item.
+
+    The item becomes an ordinary create-lead payload and passes the same
+    validation and the same insert as a manual lead, plus its stable
+    catalog_key. Because this runs under BEGIN IMMEDIATE, a retry, a second
+    tab or a concurrent request finds the lead that is already there and
+    returns it (200, created: false) instead of inserting another one; the
+    unique index on lead.catalog_key backs this up.
+    """
+    validation.parse_empty_body(body)
+    item = ctx.catalog.get(catalog_key)
+    stamp, today = _now(ctx)
+    _require_profile(conn)
+    existing = conn.execute("SELECT id FROM lead WHERE catalog_key = ?", (catalog_key,)).fetchone()
+    if existing is not None:
+        return 200, {"lead": _lead_response(conn, existing["id"], today), "created": False}
+    clean = validation.parse_lead_create(discovery.lead_body(item))
+    new_id = _insert_lead(conn, clean, stamp, catalog_key)
+    return 201, {"lead": _lead_response(conn, new_id, today), "created": True}
 
 
 def update_lead(conn, ctx, lead_id, body):

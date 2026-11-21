@@ -4,6 +4,7 @@ import * as dashboard from './views/dashboard.js';
 import * as leads from './views/leads.js';
 import * as lead from './views/lead.js';
 import * as settings from './views/settings.js';
+import * as discover from './views/discover.js';
 
 const APP_NAME = 'Dutch Freelance Workbench';
 const main = document.getElementById('main');
@@ -14,6 +15,7 @@ const ROUTES = [
   { re: /^\/leads\/new$/, nav: 'leads', render: leads.renderCreate },
   { re: /^\/leads\/(\d+)$/, nav: 'leads', render: lead.render, params: (m) => ({ id: m[1] }) },
   { re: /^\/settings$/, nav: 'settings', render: settings.render },
+  { re: /^\/discover$/, nav: 'discover', render: discover.render },
 ];
 
 let navId = 0;

@@ -1,0 +1,125 @@
+{
+  "format": 1,
+  "items": [
+    {
+      "key": "cat-0001-polder-parcel-portal",
+      "title": "Fictional parcel tracking portal rebuild",
+      "organisation": "Polder Parcel Co. (fictional)",
+      "skills": ["TypeScript", "Angular", "Accessibility"],
+      "engagement_type": "hourly-contract",
+      "country_tag": "NL",
+      "work_mode": "hybrid",
+      "summary": "Rebuild a fictional customer tracking portal with keyboard-friendly forms and clear status pages."
+    },
+    {
+      "key": "cat-0002-tulip-api-hardening",
+      "title": "Fictional booking API hardening",
+      "organisation": "Tulip Rentals B.V. (fictional)",
+      "skills": ["Python", "SQL", "Security"],
+      "engagement_type": "fixed-scope",
+      "country_tag": "NL",
+      "work_mode": "remote",
+      "summary": "Review and harden a fictional booking API: input validation, idempotent writes and audit logging."
+    },
+    {
+      "key": "cat-0003-canal-data-pipeline",
+      "title": "Fictional data pipeline for canal sensors",
+      "organisation": "Canal Metrics Lab (fictional)",
+      "skills": ["Python", "Data engineering", "SQL"],
+      "engagement_type": "hourly-contract",
+      "country_tag": "NL",
+      "work_mode": "onsite",
+      "summary": "Build a small fictional ingestion pipeline for water-level readings with daily quality checks."
+    },
+    {
+      "key": "cat-0004-fjord-design-system",
+      "title": "Fictional design system components",
+      "organisation": "Fjord Studio AS (fictional)",
+      "skills": ["TypeScript", "CSS", "Accessibility"],
+      "engagement_type": "fixed-scope",
+      "country_tag": "other",
+      "work_mode": "remote",
+      "summary": "Deliver accessible button, form and table components for a fictional design system."
+    },
+    {
+      "key": "cat-0005-windmill-devops-retainer",
+      "title": "Fictional CI and release support",
+      "organisation": "Windmill Software (fictional)",
+      "skills": ["DevOps", "Testing"],
+      "engagement_type": "retainer",
+      "country_tag": "NL",
+      "work_mode": "remote",
+      "summary": "A few fictional hours per week keeping build pipelines green and releases predictable."
+    },
+    {
+      "key": "cat-0006-alpine-react-migration",
+      "title": "Fictional React dashboard migration",
+      "organisation": "Alpine Analytics GmbH (fictional)",
+      "skills": ["React", "TypeScript", "Testing"],
+      "engagement_type": "hourly-contract",
+      "country_tag": "other",
+      "work_mode": "hybrid",
+      "summary": "Move a fictional reporting dashboard to a maintained React setup with regression tests."
+    },
+    {
+      "key": "cat-0007-dune-django-upgrade",
+      "title": "Fictional Django upgrade",
+      "organisation": "Dune Bikes (fictional)",
+      "skills": ["Python", "Django"],
+      "engagement_type": "fixed-scope",
+      "country_tag": "NL",
+      "work_mode": "remote",
+      "summary": "Upgrade a fictional shop back office across two framework versions without downtime."
+    },
+    {
+      "key": "cat-0008-harbour-accessibility-audit",
+      "title": "Fictional accessibility audit",
+      "organisation": "Harbour Health Network (fictional)",
+      "skills": ["Accessibility", "CSS"],
+      "engagement_type": "fixed-scope",
+      "country_tag": "NL",
+      "work_mode": "onsite",
+      "summary": "Audit a fictional appointment flow against WCAG 2.2 AA and pair with the team on fixes."
+    },
+    {
+      "key": "cat-0009-nordlicht-sql-tuning",
+      "title": "Fictional reporting query tuning",
+      "organisation": "Nordlicht Retail (fictional)",
+      "skills": ["SQL", "Data engineering"],
+      "engagement_type": "hourly-contract",
+      "country_tag": "other",
+      "work_mode": "remote",
+      "summary": "Speed up slow fictional month-end reports and document indexing choices."
+    },
+    {
+      "key": "cat-0010-dike-mentoring-retainer",
+      "title": "Fictional front-end mentoring",
+      "organisation": "Dike Digital (fictional)",
+      "skills": ["Angular", "TypeScript"],
+      "engagement_type": "retainer",
+      "country_tag": "unknown",
+      "work_mode": "unknown",
+      "summary": "Regular fictional pairing sessions for a small front-end team adopting signals."
+    },
+    {
+      "key": "cat-0011-lowland-test-automation",
+      "title": "Fictional end-to-end test suite",
+      "organisation": "Lowland Insurance Lab (fictional)",
+      "skills": ["Testing", "TypeScript"],
+      "engagement_type": "hourly-contract",
+      "country_tag": "NL",
+      "work_mode": "hybrid",
+      "summary": "Replace flaky fictional browser tests with a stable, data-isolated end-to-end suite."
+    },
+    {
+      "key": "cat-0012-coastline-security-review",
+      "title": "Fictional web security review",
+      "organisation": "Coastline Payments (fictional)",
+      "skills": ["Security", "Python"],
+      "engagement_type": "fixed-scope",
+      "country_tag": "other",
+      "work_mode": "onsite",
+      "summary": "Threat-model and review a fictional merchant onboarding service before launch."
+    }
+  ]
+}
