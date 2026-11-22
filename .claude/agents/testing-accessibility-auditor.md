@@ -21,6 +21,7 @@ Dutch Freelance Workbench is a local-only lead tracker for one freelancer. The i
 - Patterns already in source are kept: the skip link, the `#status` and `#alert` regions and `main` in `index.html`; heading focus after navigation in `app.js`; hints, `aria-invalid` and the error summary in `dom.js`; conflict and message panels in `forms.js`; `:focus-visible` outlines and `prefers-reduced-motion` in `styles.css`.
 - User text stays text: no `innerHTML` (`docs/architecture.md`, "Invariants future work must keep").
 - Narrow layouts still work (`README.md`, "Optional browser acceptance run").
+- Changed screens also meet `docs/ui-quality.md` (for example, status is never carried by colour alone); report breaches of its rules as findings.
 
 **Not applicable below.** `npx @axe-core/cli`, Lighthouse, design-system audits, the React and Vue pitfalls, the legal material. None of that tooling is installed; the only browser tooling here is `tests/browser/acceptance.mjs`. You cannot do screen-reader or zoom testing; list it as not verified.
 

@@ -2,7 +2,7 @@
 
 A local-only lead tracker for one freelancer: a Python standard-library HTTP server, one
 SQLite file and a browser client made of native JavaScript modules. No dependencies, no
-build step, no CI. Read this file first, then the documents it links to. Do not copy
+build step. Read this file first, then the documents it links to. Do not copy
 their content here.
 
 ## Source of truth
@@ -15,6 +15,7 @@ their content here.
 | How a ticket is implemented, step by step, and which agent role runs when | [.claude/skills/implement-ticket/SKILL.md](.claude/skills/implement-ticket/SKILL.md) |
 | Project agent roles, their pin, licence and local changes | [docs/agent-roles.md](docs/agent-roles.md) |
 | The report-only triage loop | [LOOP.md](LOOP.md), [loop-constraints.md](loop-constraints.md) |
+| Delivery workflow, UI rules, recorded owner decisions | [Delivery workflow](#delivery-workflow), [docs/ui-quality.md](docs/ui-quality.md), [docs/owner-decisions.md](docs/owner-decisions.md) |
 
 There is no PRD file. The README is the requirement for shipped behaviour and the GitHub
 issues are the requirement for planned behaviour. If they disagree with the code, the
@@ -56,8 +57,8 @@ package and Google Chrome; it uses ports 18781 to 18783 and temporary folders):
 NODE_PATH="$(npm root -g)" WORKBENCH_PYTHON=python node tests/browser/acceptance.mjs
 ```
 
-There is no linter, formatter, type checker or CI workflow. Do not invent one inside a
-feature change. Match the surrounding style: small functions, docstrings that state the
+There is no linter, formatter or type checker. Do not invent one inside a feature
+change. The one CI workflow is `.github/workflows/ci.yml` (see "Delivery workflow"). Match the surrounding style: small functions, docstrings that state the
 rule, no third-party imports.
 
 ## Architecture boundaries
@@ -124,7 +125,8 @@ Put this in the pull request description. Report only what was actually run.
    check passing.
 6. README and `docs/architecture.md` updated in the same pull request when behaviour,
    a boundary or an invariant changed.
-7. Anything not run or not verified, stated plainly.
+7. CI green on the pushed commit (both operating systems, both Python versions).
+8. Anything not run or not verified, stated plainly.
 
 ## Project agents and the loop
 
@@ -167,3 +169,17 @@ starts it by hand. Delegate to the roles without waiting to be asked; each role'
 The Loop Engineering setup is level L1, report-only: it may read the repository and
 GitHub and update `STATE.md` and `loop-run-log.md`. It does not edit source, write to
 GitHub, schedule itself or merge. See [LOOP.md](LOOP.md).
+
+## Delivery workflow
+
+How a ticket gets from the queue to a ready pull request. The pieces are described where they live; this part only links them.
+
+- **Driver and playbook.** The owner starts a run with `/next-ticket` ([.claude/skills/next-ticket/SKILL.md](.claude/skills/next-ticket/SKILL.md)); it follows the playbook [.claude/skills/implement-ticket/SKILL.md](.claude/skills/implement-ticket/SKILL.md). Where a rule says not to push or open a pull request unless the owner asked in the current session, a `/next-ticket` run counts as that request. No scheduler starts ticket work.
+- **Review gate hook.** [.claude/hooks/role_gate.py](.claude/hooks/role_gate.py) blocks `gh pr create` and `gh pr ready` until Code Reviewer and Reality Checker ran after the last code edit. `ROLE_GATE=off` in the environment Claude Code was started from switches it off for that session; only the owner does that.
+- **Permissions.** [.claude/settings.json](.claude/settings.json): documented commands are allowed, merges, force pushes, pushes to `main`, releases and reads of secrets are denied, edits to CI, agent configuration and Loop files ask first.
+- **CI.** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs the full suite and the gate self-test on Linux and Windows with Python 3.12 and 3.13. A pull request is marked ready only when it is green.
+- **Pull request.** Use [.github/pull_request_template.md](.github/pull_request_template.md). Add one line under `Unreleased` in [CHANGELOG.md](CHANGELOG.md).
+- **Labels.** `status:ready`, `status:blocked`, `status:in-progress`, `needs-decision` on the epic's children.
+- **UI and copy.** The ten rules in [docs/ui-quality.md](docs/ui-quality.md) are binding; the `ui-ux-pro-max` and `unslop` skills are in `.claude/skills/`.
+- **Decisions.** [docs/owner-decisions.md](docs/owner-decisions.md) records the owner's decisions; an agent that finds one blocking a ticket stops and says so.
+- **Merging and releasing.** Only the owner merges and releases ([docs/RELEASING.md](docs/RELEASING.md)). Agents never merge, never enable auto-merge and never push to `main`.

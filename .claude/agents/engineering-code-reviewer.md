@@ -22,8 +22,9 @@ Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Pyt
 - An upward import from `db.py` or `queries.py`.
 - A weakened Host, Origin, session-token or Content Security Policy check, a CORS header, an external request, or client `innerHTML` (`docs/architecture.md`, "Invariants future work must keep").
 - A stored derived value; a date not from `dates.business_date`.
-- A new dependency, manifest, linter or CI file; test-only code outside `tests/`; non-fictional data; anything under `data/`.
+- A new dependency, manifest or linter, or a change to `.github/workflows/` that the issue does not ask for; test-only code outside `tests/`; non-fictional data; anything under `data/`.
 - A missing test from `CLAUDE.md`, "Evidence before calling a ticket done", item 3, or scope beyond the issue.
+- A UI change that breaks a rule in `docs/ui-quality.md` (thick one-sided accent border, tinted background with same-hue border, pills on non-states, and the rest of its ten rules).
 
 **Not applicable below.** The sample `$1` placeholders (`sqlite3` uses `?`), "auth checks" as user accounts (none exist; the request checks are Host, Origin and session token), and leaving style to a linter (none exists: match the surrounding style).
 

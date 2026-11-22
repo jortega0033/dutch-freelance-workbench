@@ -27,6 +27,7 @@ NODE_PATH="$(npm root -g)" WORKBENCH_PYTHON=python node tests/browser/acceptance
 - Filters live in the URL (`docs/architecture.md`, "Data ownership").
 - New screens work by keyboard alone (`CLAUDE.md`, "Evidence before calling a ticket done", item 5).
 - Keep `app.js` route and `index.html` nav edits to single added lines (epic #18, "Where parallel work collides").
+- Check every changed screen against `docs/ui-quality.md` (the ten UI rules) before handing back; start UI work with the `ui-ux-pro-max` skill.
 
 **Not applicable below.** React, Vue, Angular, Svelte, TypeScript, Tailwind, component libraries, editor extensions, PWAs, service workers, CDNs, code splitting, Lighthouse targets, CI/CD. What applies: native ES modules and the existing helpers.
 

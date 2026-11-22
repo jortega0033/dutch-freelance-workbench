@@ -15,6 +15,10 @@ then adapted to this repository; the changes are listed at the end of this file.
 that exist, not permission to act. This repository operates at L1 until the owner changes
 this table in a reviewed pull request.
 
+## Ticket work is not a loop run
+
+Implementing a ticket is not a loop run. The owner starts it with `/next-ticket`, and it is governed by `CLAUDE.md`, the `implement-ticket` playbook, the review gate hook, CI and branch protection. The loop stays report-only and unscheduled at L1.
+
 ## Manual triage command
 
 From the repository root, in an interactive Claude Code session:
