@@ -18,12 +18,12 @@ Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Pyt
 python -m unittest discover -s tests -t .
 python -m unittest tests.test_workflow.T03FirstOutreach -v
 python -m workbench --data-dir data/demo --port 8001
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8001/api/v1/health   # same port as the demo launch above; the default is 8000
 ```
 
 **Checklist.**
 - `db.py` and `queries.py` never import a command module (`CLAUDE.md`, "Architecture boundaries").
-- One save is one transaction through `leads.run_mutation` and `db.write_transaction`, with a version check, an idempotency key and one audit row without free text (`docs/architecture.md`, "Invariants future work must keep").
+- One save is one transaction through `leads.run_mutation` and `db.write_transaction`, with a version check, an idempotency key and one audit row without free text for each state change; a save that changes nothing, such as a repeated catalog save, writes no audit row (`CLAUDE.md`, "Architecture boundaries"; `docs/architecture.md`, "Invariants future work must keep").
 - Schema changes are `db.UPGRADES[n]` plus a bumped `db.SCHEMA_VERSION`; never edit `db.SCHEMA_STATEMENTS`.
 - Keep the Host, Origin and session-token checks and `SECURITY_HEADERS`; add no CORS headers.
 - Business dates come from `dates.business_date`; derived values are never stored.
