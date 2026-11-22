@@ -9,6 +9,7 @@
 *-shm
 *-journal
 data/
+!.claude/skills/ui-ux-pro-max/data/
 demo-data/
 test-data/
 *.data/

@@ -17,11 +17,11 @@ The project subagents in `.claude/agents/` are part of the work. Delegate to the
 3. **Orient and check the approach.** Delegate as the table "Before coding" says. Settle open design questions before writing code. For a UI ticket, start with the `ui-ux-pro-max` skill (design-system search for the product type) before choosing layout, colour or type.
 4. **Branch** as the Git workflow in `CLAUDE.md` says. Never work on the default branch.
 5. **Implement** inside the ticket's stated scope. Delegate the work to the implementing role that matches the files being changed (table "While coding"). Do not widen scope; note anything else you find as a follow-up.
-6. **Test.** Add or change tests for every acceptance criterion and material edge case, then run the checks listed in `CLAUDE.md`. Record each command and its result.
+6. **Test.** Run the `unslop` skill over user-facing copy and documentation you changed (copy lives in code files such as `workbench/static/js/*.js` and `index.html`, so do this before the gates). Add or change tests for every acceptance criterion and material edge case, then run the checks listed in `CLAUDE.md`. Record each command and its result.
 7. **Specialist review.** Run every role in the table "After coding" whose trigger matches the change. For a UI ticket, check every changed screen against `docs/ui-quality.md` and record the result.
 8. **Review gate, always.** Run Code Reviewer on the full diff. Fix every material finding, re-run the checks, and have the reviewer look again until no material finding is left.
 9. **Acceptance gate, always.** Run Reality Checker with the ticket's acceptance criteria and the evidence you produced. Do not call the ticket done unless it passes.
-10. **Prepare the pull request.** Add one line under `Unreleased` in `CHANGELOG.md`. Run the `unslop` skill over user-facing copy, documentation changes and the pull request text. Capture the evidence `CLAUDE.md` asks for and fill in `.github/pull_request_template.md`.
+10. **Prepare the pull request.** Add one line under `Unreleased` in `CHANGELOG.md`. Run the `unslop` skill over the pull request text and the changelog line. If anything other than Markdown changes after step 9, go back to step 8. Capture the evidence `CLAUDE.md` asks for and fill in `.github/pull_request_template.md`.
 11. **Open it and wait for CI.** Push the branch and open a draft pull request against `main` that links the issue (`Closes #<number>`); a `/next-ticket` run counts as the owner's request to push and open it. Mark it ready only when both gates passed on the current diff and CI is green on the pushed commit. Only the owner merges: do not merge and do not enable auto-merge.
 
 ## Roles

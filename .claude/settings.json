@@ -8,7 +8,9 @@
       "Bash(gh issue view *)", "Bash(gh issue list *)", "Bash(gh pr view *)", "Bash(gh pr list *)",
       "Bash(gh pr checks *)", "Bash(gh pr create *)", "Bash(gh pr ready *)",
       "Bash(python -m unittest *)", "Bash(python -m workbench *)",
-      "Bash(curl http://127.0.0.1:8000/api/v1/health)", "Bash(node tests/browser/acceptance.mjs)",
+      "Bash(curl http://127.0.0.1:8000/api/v1/health)", "Bash(NODE_PATH=* WORKBENCH_PYTHON=* node tests/browser/acceptance.mjs)",
+      "Bash(gh issue edit *)", "Bash(gh issue comment *)",
+      "Bash(python3 -m unittest *)", "Bash(python3 -m workbench *)",
       "Bash(python .claude/hooks/role_gate.py --self-test)",
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py *)"
     ],

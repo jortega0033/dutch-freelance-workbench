@@ -95,8 +95,8 @@ that a change must not break:
 
 ## Git workflow
 
-- `main` is the default branch and is not protected by a GitHub rule; treat it as
-  protected anyway. Never commit to `main` directly and never force-push it.
+- `main` is the default branch and is meant to require a pull request and green checks (the
+  owner's orchestrator sets the GitHub rule after the merge); treat it as protected either way. Never commit to `main` directly and never force-push it.
 - One issue per branch, named `feature/<issue-number>-<short-slug>` (the convention used
   by `feature/1-discover-catalog`). Preparation or documentation work uses its own branch.
 - Open a pull request against `main`, link the issue (`Closes #n`), and keep the diff to
