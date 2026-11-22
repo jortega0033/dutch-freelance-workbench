@@ -125,7 +125,7 @@ Put this in the pull request description. Report only what was actually run.
    check passing.
 6. README and `docs/architecture.md` updated in the same pull request when behaviour,
    a boundary or an invariant changed.
-7. CI green on the pushed commit (both operating systems, both Python versions).
+7. CI green on the pushed commit of the draft pull request (both operating systems, both Python versions). It is checked by the driver before the pull request is marked ready, not by the gates, which run earlier on local evidence.
 8. Anything not run or not verified, stated plainly.
 
 ## Project agents and the loop
@@ -156,7 +156,7 @@ starts it by hand. Delegate to the roles without waiting to be asked; each role'
 | Before coding | Codebase Onboarding Engineer (unfamiliar area); Software Architect (a module boundary, data model, storage schema, public API or dependency changes) |
 | While coding | The implementing role that matches the files: Backend Architect, Database Reliability Engineer or Frontend Developer |
 | After coding | Accessibility Auditor, when UI, keyboard handling, focus order or markup changed |
-| Gates on every ticket | Code Reviewer on the full diff, then Reality Checker on the acceptance criteria and the evidence listed above |
+| Gates on every ticket | Code Reviewer on the full diff, then Reality Checker on the acceptance criteria and the local evidence listed above (items 1 to 6 and 8; it checks that CI is configured, not a CI result). Both run after the local checks pass and before the draft pull request is opened |
 
 - The two gates run on every ticket, however small the change. The other roles run when
   their trigger matches.
@@ -177,7 +177,7 @@ How a ticket gets from the queue to a ready pull request. The pieces are describ
 - **Driver and playbook.** The owner starts a run with `/next-ticket` ([.claude/skills/next-ticket/SKILL.md](.claude/skills/next-ticket/SKILL.md)); it follows the playbook [.claude/skills/implement-ticket/SKILL.md](.claude/skills/implement-ticket/SKILL.md). Where a rule says not to push or open a pull request unless the owner asked in the current session, a `/next-ticket` run counts as that request. No scheduler starts ticket work.
 - **Review gate hook.** [.claude/hooks/role_gate.py](.claude/hooks/role_gate.py) blocks `gh pr create` and `gh pr ready` until Code Reviewer and Reality Checker ran after the last code edit. `ROLE_GATE=off` in the environment Claude Code was started from switches it off for that session; only the owner does that.
 - **Permissions.** [.claude/settings.json](.claude/settings.json): documented commands are allowed, merges, force pushes, pushes to `main`, releases and reads of secrets are denied, edits to CI, agent configuration and Loop files ask first.
-- **CI.** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs the full suite and the gate self-test on Linux and Windows with Python 3.12 and 3.13. A pull request is marked ready only when it is green.
+- **CI.** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs the full suite and the gate self-test on Linux and Windows with Python 3.12 and 3.13. The order is fixed: local checks, Code Reviewer, Reality Checker, a draft pull request, CI, and `gh pr ready` only when CI is green. A pull request is never opened or marked ready with a gate not run.
 - **Pull request.** Use [.github/pull_request_template.md](.github/pull_request_template.md). Add one line under `Unreleased` in [CHANGELOG.md](CHANGELOG.md).
 - **Labels.** `status:ready`, `status:blocked`, `status:in-progress`, `needs-decision` on the epic's children.
 - **UI and copy.** The ten rules in [docs/ui-quality.md](docs/ui-quality.md) are binding; the `ui-ux-pro-max` and `unslop` skills are in `.claude/skills/`.

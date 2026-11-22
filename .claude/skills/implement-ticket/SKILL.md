@@ -22,7 +22,7 @@ The project subagents in `.claude/agents/` are part of the work. Delegate to the
 8. **Review gate, always.** Run Code Reviewer on the full diff. Fix every material finding, re-run the checks, and have the reviewer look again until no material finding is left.
 9. **Acceptance gate, always.** Run Reality Checker with the ticket's acceptance criteria and the evidence you produced. Do not call the ticket done unless it passes.
 10. **Prepare the pull request.** Add one line under `Unreleased` in `CHANGELOG.md`. Run the `unslop` skill over the pull request text and the changelog line. If anything other than Markdown changes after step 9, go back to step 8. Capture the evidence `CLAUDE.md` asks for and fill in `.github/pull_request_template.md`.
-11. **Open it and wait for CI.** Push the branch and open a draft pull request against `main` that links the issue (`Closes #<number>`); a `/next-ticket` run counts as the owner's request to push and open it. Mark it ready only when both gates passed on the current diff and CI is green on the pushed commit. Only the owner merges: do not merge and do not enable auto-merge.
+11. **Open a draft, then wait for CI.** Only after the local checks passed and both gates ran on the current diff, push the branch and open a draft pull request against `main` that links the issue (`Closes #<number>`); a `/next-ticket` run counts as the owner's request to push and open it. Never open it with a gate not run. CI runs on the draft. If it fails, fix, re-run the local checks and both gates, and push. Mark it ready (`gh pr ready`) only when CI is green on the pushed commit; add the CI run link to the pull request. Only the owner merges: do not merge and do not enable auto-merge.
 
 ## Roles
 
@@ -52,7 +52,7 @@ The project subagents in `.claude/agents/` are part of the work. Delegate to the
 | Role | Access | Delegate to it |
 |---|---|---|
 | Code Reviewer | read-only reviewer | After implementing or changing code for a ticket, before the work is called done or a pull request is opened |
-| Reality Checker | read-only reviewer | As the last step of every ticket, to check each acceptance criterion against evidence that was actually produced before the ticket is called done |
+| Reality Checker | read-only reviewer | After Code Reviewer and before the draft pull request is opened, to check each acceptance criterion against local evidence that was actually produced and that CI is configured to run the documented checks. It does not check a CI result |
 
 ## Rules
 
