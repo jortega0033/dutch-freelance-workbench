@@ -19,6 +19,14 @@ step. The optional browser acceptance run is described in [CLAUDE.md](CLAUDE.md)
 python -m workbench --data-dir data/main
 ```
 
+## Ticket workflow
+
+Implementing a GitHub issue follows the playbook in
+[.claude/skills/implement-ticket/SKILL.md](.claude/skills/implement-ticket/SKILL.md).
+The role instructions it names are in `.claude/agents/`; each starts with an
+"In this repository" section. A tool that cannot run those subagents does the same
+steps itself, in the same order, and says so in the pull request.
+
 ## Loop conventions
 
 - The loop runs at L1, report-only. No scheduler, no automated source fix, no auto-merge.

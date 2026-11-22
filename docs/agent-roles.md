@@ -88,14 +88,20 @@ definitions, so the headless run above is the check to repeat after changing a r
 ## Updating a role
 
 1. Choose a new upstream revision and read the upstream diff and licence at that revision.
-2. Re-fetch the file, re-apply the `tools:` line for reviewer roles, and update
-   `agency-agents.lock.json` (revision, blob SHA, SHA-256).
+2. Re-fetch the file, re-apply the local changes (the `tools:` line for reviewer roles,
+   the "Use proactively" sentence and the "In this repository" section, re-checked
+   against the new upstream text), and update `agency-agents.lock.json` (revision, blob
+   SHA, SHA-256).
 3. Repeat the load check and record the result here.
 
 ## Local change: automatic delegation (2026-11-22)
 
-One sentence beginning "Use proactively" was appended to the `description:` line of every Agency Agents role in `.claude/agents/` (not to `loop-verifier`). Claude Code uses that field to decide when to delegate, so the roles now run during ticket work without being named. Nothing else in the role files changed.
+One sentence beginning "Use proactively" was appended to the `description:` line of every Agency Agents role in `.claude/agents/` (not to `loop-verifier`). Claude Code uses that field to decide when to delegate, so the roles now run during ticket work without being named.
 
-This supersedes any statement above that a role file is unmodified or that the `tools:` line is the only local change. To compare a role with the pinned upstream file, remove that sentence (and the `tools:` line where one was added) first.
+A section headed "In this repository" was also inserted directly after the frontmatter of every Agency Agents role (2026-11-22, again not in `loop-verifier`). It is project-specific text written for this repository, not upstream text: it names the files the role owns or reviews, the commands from `CLAUDE.md`, the invariants to check, the parts of the generic text that do not apply here and what the role must hand back. The upstream text below it is unchanged.
+
+This supersedes any statement above that a role file is unmodified or that the `tools:` line is the only local change. To compare a role with the pinned upstream file, remove the "In this repository" section as well as the "Use proactively" sentence (and the `tools:` line where one was added) first.
 
 The steps at which each role runs are in `.claude/skills/implement-ticket/SKILL.md`.
+
+Verification, 2026-11-22 (Claude Code 2.1.323, fresh headless run from the root of this branch's worktree, after the sections were inserted): `claude -p "List every project subagent defined in .claude/agents with its exact name and tools, say for each whether its instructions begin with a section titled In this repository, and say whether a skill named implement-ticket is available. Plain list, no commentary." --model haiku` listed all nine roles by their exact names. The five reviewer roles showed `Read, Grep, Glob`, the three implementing roles showed all tools (no `tools` field) and `loop-verifier` showed `Read, Grep, Glob, Bash`. It reported the "In this repository" section as present at the start of all eight Agency Agents roles and absent from `loop-verifier`, and the `implement-ticket` skill as available. This run listed the definitions; it did not launch a role.
