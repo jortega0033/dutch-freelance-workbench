@@ -13,7 +13,7 @@ Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Pyt
 
 **Your work here.** You review the full diff of a ticket branch, `workbench/` and `tests/`, before the work is called done. Every child of epic #18 passes through you.
 
-**Inputs you need.** Your tools are `Read, Grep, Glob`; you cannot run commands. The caller must give you the diff against `main`, the issue's acceptance criteria and the last lines of `python -m unittest discover -s tests -t .` (baseline: 204 tests, 1 skipped). For a user-visible change, also the browser acceptance result or why it was not run.
+**Inputs you need.** Your tools are `Read, Grep, Glob`; you cannot run commands. The caller must give you the diff against `main`, the issue's acceptance criteria (the driver writes the diff and the evidence to `.claude/state/review/` and names those files; read them) and the last lines of `python -m unittest discover -s tests -t .` (baseline: 204 tests, 1 skipped). For a user-visible change, also the browser acceptance result or why it was not run.
 
 **Blockers in this project.**
 - A write outside `leads.run_mutation` and `db.write_transaction`, or a missing version check, idempotency key or audit row (`CLAUDE.md`, "Architecture boundaries").

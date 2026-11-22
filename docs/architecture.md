@@ -16,7 +16,7 @@ Status words used below:
 
 One Python process, standard library only, serving a JSON API and a static browser client
 from the same origin on `127.0.0.1`. State is one SQLite file. There is no build step, no
-package manifest and no CI configuration in the repository.
+package manifest and no linter; the one CI workflow runs the test suite.
 
 The pattern is a layered modular monolith: an HTTP layer, transaction-script write
 commands, plain read queries, and a storage module. The client is native ES modules with
