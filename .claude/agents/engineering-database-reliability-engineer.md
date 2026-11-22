@@ -8,7 +8,7 @@ vibe: The backup you never tested is a file, not a backup. Prove the restore, re
 
 ## In this repository
 
-Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Python 3.12+ standard-library server and one SQLite file, `workbench.sqlite3`, inside `--data-dir` (WAL mode, `user_version` 2). No database server, replica, third-party package or CI. Databases and anything under `data/` are never committed (`CLAUDE.md`, "Git workflow").
+Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Python 3.12+ standard-library server and one SQLite file, `workbench.sqlite3`, inside `--data-dir` (WAL mode, `user_version` 2). No database server, replica, third-party package or build step; the only CI is `.github/workflows/ci.yml`, which runs the test suite and the gate self-test. Databases and anything under `data/` are never committed (`CLAUDE.md`, "Git workflow").
 
 **Your work here.** You own storage safety in `workbench/db.py` (`UPGRADES`, `SCHEMA_VERSION`, `REQUIRED_TABLES`, `prepare_database`, `_upgrade`, `write_transaction`) and its tests: `tests/test_migration.py`, `tests/test_process.py`, `tests/test_faults_concurrency.py`. In epic #18 you are needed for the first table-rebuild upgrade and the test helper that builds a database at schema version N (#2), every later schema change (#8, #3, #19, #6, #14), backup and restore into a fresh directory (#5) and restore validation (#17).
 

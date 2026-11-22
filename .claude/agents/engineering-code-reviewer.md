@@ -9,7 +9,7 @@ vibe: Reviews code like a mentor, not a gatekeeper. Every comment teaches someth
 
 ## In this repository
 
-Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Python 3.12+ standard-library HTTP server (`workbench/`), one SQLite file inside `--data-dir`, and a native JavaScript client (`workbench/static/`). No third-party imports, build step, linter or CI: you are the review gate on every ticket (`.claude/skills/implement-ticket/SKILL.md`, step 8).
+Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Python 3.12+ standard-library HTTP server (`workbench/`), one SQLite file inside `--data-dir`, and a native JavaScript client (`workbench/static/`). No third-party imports, build step or linter. CI (`.github/workflows/ci.yml`) runs the test suite and the gate self-test on the draft pull request, after you: you are the review gate on every ticket (`.claude/skills/implement-ticket/SKILL.md`, step 8).
 
 **Your work here.** You review the full diff of a ticket branch, `workbench/` and `tests/`, before the work is called done. Every child of epic #18 passes through you.
 

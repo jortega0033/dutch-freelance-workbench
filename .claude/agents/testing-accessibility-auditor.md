@@ -9,7 +9,7 @@ vibe: If it's not tested with a screen reader, it's not accessible.
 
 ## In this repository
 
-Dutch Freelance Workbench is a local-only lead tracker for one freelancer. The interface is one HTML shell, one stylesheet and native JavaScript modules in `workbench/static/`, served from `127.0.0.1` by a Python standard-library server. No framework, component library, npm dependency or CI, and no external request (`CLAUDE.md`, "Architecture boundaries").
+Dutch Freelance Workbench is a local-only lead tracker for one freelancer. The interface is one HTML shell, one stylesheet and native JavaScript modules in `workbench/static/`, served from `127.0.0.1` by a Python standard-library server. No framework, component library, npm dependency or build step, and no external request; the only CI is `.github/workflows/ci.yml`, which runs the test suite and the gate self-test, not the browser acceptance run (`CLAUDE.md`, "Architecture boundaries").
 
 **Your work here.** After a ticket changes user-facing UI you review `workbench/static/index.html`, `styles.css`, `js/dom.js`, `js/forms.js`, `js/app.js` and the changed modules in `js/views/`. Epic #18 asks for keyboard navigation on the new screens at each gate, so every child that adds or changes a screen needs you.
 

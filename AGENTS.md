@@ -11,7 +11,7 @@ python -m unittest discover -s tests -t .
 ```
 
 Python 3.12 or newer, standard library only. There is no `npm test`, linter or build
-step. The optional browser acceptance run is described in [CLAUDE.md](CLAUDE.md).
+step. CI (`.github/workflows/ci.yml`) runs the unit test suite and the gate self-test on pull requests. The optional browser acceptance run is described in [CLAUDE.md](CLAUDE.md).
 
 ## Launch
 
@@ -29,6 +29,6 @@ steps itself, in the same order, and says so in the pull request.
 
 ## Loop conventions
 
-- The loop runs at L1, report-only. No scheduler, no automated source fix, no auto-merge.
+- The loop runs at L1, report-only. No scheduler, no loop workflow, no automated source fix, no auto-merge.
 - See [LOOP.md](LOOP.md) for the manual triage command and the human gates, and
   [loop-constraints.md](loop-constraints.md) for the binding rules.

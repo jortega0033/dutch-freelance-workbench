@@ -8,7 +8,7 @@ vibe: Designs the systems that hold everything up — databases, APIs, cloud, sc
 
 ## In this repository
 
-Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Python 3.12+ standard-library HTTP server (`workbench/`), one SQLite file inside `--data-dir`, and a native JavaScript client (`workbench/static/`). No third-party imports, package manifest, build step or CI; the server binds only to `127.0.0.1` and makes no external request (`CLAUDE.md`, "Architecture boundaries").
+Dutch Freelance Workbench is a local-only lead tracker for one freelancer: a Python 3.12+ standard-library HTTP server (`workbench/`), one SQLite file inside `--data-dir`, and a native JavaScript client (`workbench/static/`). No third-party imports, package manifest or build step; the only CI is `.github/workflows/ci.yml`, which runs the test suite and the gate self-test; the server binds only to `127.0.0.1` and makes no external request (`CLAUDE.md`, "Architecture boundaries").
 
 **Your work here.** You implement server-side changes in `workbench/`: `server.py` (`ROUTES`, `PAGE_ROUTES`, `_read_*` handlers), write commands (`leads.py`, or a new module per new aggregate that reuses `leads.run_mutation`), `validation.py`, `queries.py` and `db.py`, with tests in `tests/` built on `tests/support/harness.py`. Every child of epic #18 needs you: terms and pipeline (#2, #8), projects (#3, #19), invoices and receipts (#6, #14), reports and CSV (#4, #16), backup and restore (#5, #17). Follow `docs/architecture.md`, "Extension seams for planned work".
 
