@@ -9,6 +9,7 @@
 *-shm
 *-journal
 data/
+!.claude/skills/ui-ux-pro-max/data/
 demo-data/
 test-data/
 *.data/
@@ -59,3 +60,10 @@ credentials*.json
 *.swp
 .DS_Store
 Thumbs.db
+
+# Claude Code local state (project agents and skills under .claude/ are tracked)
+.claude/worktrees/
+.claude/settings.local.json
+
+# Review gate ledger (local)
+.claude/state/
