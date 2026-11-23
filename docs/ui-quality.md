@@ -21,3 +21,4 @@ Ten rules for every screen and every user-facing sentence in this repository. Th
 - Enforcement is by the review gate: Code Reviewer checks every ticket diff against these rules, and Frontend Developer and Accessibility Auditor name this file in their checklists. There is no script. Rule 1 can be found with `grep -n "border-left\|border-right" workbench/static/styles.css`; rule 2 cannot be detected reliably from CSS.
 - Existing breaches are collected in one ticket in epic [#18](https://github.com/jortega0033/dutch-freelance-workbench/issues/18); do not mix their repair into an unrelated ticket.
 - The stack still applies: native HTML, one stylesheet, no remote asset, no framework (`CLAUDE.md`, "Architecture boundaries").
+- Colour, spacing and type values come from the shared tokens described in [design-tokens.md](design-tokens.md); the accent in rule 8 is the Pipenzo yellow `--primary`.
