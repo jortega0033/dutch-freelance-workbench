@@ -62,7 +62,7 @@ export async function renderList(main, ctx) {
   const results = h('div', { id: 'lead-results', 'aria-live': 'off' }, loading());
   replaceContent(main,
     h('h1', { tabindex: '-1' }, 'Leads'),
-    h('p', null, link('/leads/new', 'Add a lead', { class: 'button', id: 'add-lead-link' })),
+    h('p', null, link('/leads/new', 'Add a lead', { class: 'button primary', id: 'add-lead-link' })),
     form, results);
 
   await loadResults(results, filters, ctx, form, { q, stage, country, mode, source, bucket });
@@ -140,7 +140,7 @@ export async function renderCreate(main, ctx) {
   const channel = selectField({ form: f, name: 'source_channel', label: 'Source channel', value: 'manual', options: OPTIONS.source });
   const sourceLabel = textField({ form: f, name: 'source_label', label: 'Source label (optional)', hint: 'For example the platform or contact name. 1–120 characters if given.' });
   form.append(label.wrap, country.wrap, mode.wrap, channel.wrap, sourceLabel.wrap,
-    h('div', { class: 'actions' }, h('button', { type: 'submit', name: 'save' }, 'Save lead'), link('/leads', 'Cancel', { class: 'button secondary' })));
+    h('div', { class: 'actions' }, h('button', { type: 'submit', class: 'primary', name: 'save' }, 'Save lead'), link('/leads', 'Cancel', { class: 'button secondary' })));
   const controls = { label, country_tag: country, work_mode: mode, source_channel: channel, source_label: sourceLabel };
   attachSave({
     form, controls, aliases: {}, method: 'POST',

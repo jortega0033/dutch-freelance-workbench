@@ -20,5 +20,5 @@ Ten rules for every screen and every user-facing sentence in this repository. Th
 - User-facing copy, documentation and pull request text go through the `unslop` skill (`.claude/skills/unslop/`) before the pull request is opened.
 - Enforcement is by the review gate: Code Reviewer checks every ticket diff against these rules, and Frontend Developer and Accessibility Auditor name this file in their checklists. There is no script. Rule 1 can be found with `grep -n "border-left\|border-right" workbench/static/styles.css`; rule 2 cannot be detected reliably from CSS.
 - Existing breaches are collected in one ticket in epic [#18](https://github.com/jortega0033/dutch-freelance-workbench/issues/18); do not mix their repair into an unrelated ticket.
-- The stack still applies: native HTML, one stylesheet, no remote asset, no framework (`CLAUDE.md`, "Architecture boundaries").
-- Colour, spacing and type values come from the shared tokens described in [design-tokens.md](design-tokens.md); the accent in rule 8 is the Pipenzo yellow `--primary`.
+- The stack still applies: native HTML, one app stylesheet plus the shared `tokens.css`, no remote asset, no framework (`CLAUDE.md`, "Architecture boundaries").
+- Colour values come from the shared tokens in [design-tokens.md](design-tokens.md). The rule 8 accent is `--primary`, used only on the primary action and the current-step marker; the current selection uses text weight, underline or `--state-selected`, not yellow.

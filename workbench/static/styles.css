@@ -83,11 +83,11 @@ input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="
 .choice label { margin: 0; font-weight: 400; }
 button, .button {
   font: inherit; font-weight: 600; cursor: pointer; border-radius: 4px; padding: 0.5rem 1rem; min-height: 2.5rem;
-  border: 2px solid var(--primary-edge); background: var(--primary); color: var(--on-primary); text-decoration: none; display: inline-block;
+  border: 2px solid var(--btn-secondary-border); background: var(--btn-secondary); color: var(--fg); text-decoration: none; display: inline-block;
 }
-button:hover, .button:hover { background: var(--primary-press); }
-button.secondary, .button.secondary { background: var(--btn-secondary); color: var(--fg); border-color: var(--btn-secondary-border); }
-button.secondary:hover, .button.secondary:hover { background: var(--state-hover); }
+button:hover, .button:hover { background: var(--state-hover); }
+button.primary, .button.primary { background: var(--primary); color: var(--on-primary); border-color: var(--primary-edge); }
+button.primary:hover, .button.primary:hover { background: var(--primary-press); }
 button[disabled] { opacity: 0.6; cursor: not-allowed; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0 1rem; }
