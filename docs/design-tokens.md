@@ -4,7 +4,7 @@ The visual system is the Pipenzo "Flow look": black page, alpha-layer surfaces, 
 
 ## Source and resync
 
-`workbench/static/tokens.css` is a byte-for-byte copy of `extension/sidepanel/tokens.css` in `jortega0033/clip-to-reel-studio` at commit `a13378ce73e5b27213c9a200fc960ec93afef054` (2026-11-21). Never edit the copy. To resync, copy the file over it; nothing else changes. The header comment in the file holds the contrast rules and the yellow rule of the source project. That comment is narrower than the rules in this document (it does not cover the current selection, the focus ring or the dark theme checks), and the copy must stay identical to the source, so it cannot be edited here. Where the two differ, this document takes precedence.
+`workbench/static/tokens.css` is a byte-for-byte copy of `extension/sidepanel/tokens.css` in `jortega0033/clip-to-reel-studio` at commit `a13378ce73e5b27213c9a200fc960ec93afef054` (2026-11-21). Never edit the copy. To resync, copy the file over it; nothing else changes. The header comment in the file holds the contrast rules and the yellow rule of the source project. The header comment differs from this document: it names three uses from the source app (including the "your turn" chip, the hero kicker dot and the overlay opening dot), it does not name the current selection, and it does not cover the focus ring or the dark theme checks. The copy must stay identical to the source, so it cannot be edited here. This document takes precedence over any comment in tokens.css, including those on `--primary` and `--state-selected`.
 
 `index.html` loads `tokens.css` before `styles.css`. `styles.css` defines no colours of its own.
 
@@ -16,7 +16,7 @@ The visual system is the Pipenzo "Flow look": black page, alpha-layer surfaces, 
 - Accent: `--primary`, `--primary-press`, `--primary-edge`, `--on-primary`. Yellow only on the primary action, the current-step marker and the current selection (see "Yellow, selection and focus"). Buttons are neutral by default; add the `primary` class (`button.primary`, `.button.primary`) to one primary action per screen.
 - Status: `--danger`, `--danger-bg` (the only red), `--ok`, `--ok-bg`, `--warn-fg`, `--warn-bg`, `--success`, `--info`.
 - Focus: `--focus`, a focus indicator, exempt from the accent limit (see below).
-- Secondary controls and hover layers: `--btn-secondary`, `--btn-secondary-border`, `--state-hover`, `--state-selected`.
+- Secondary controls and hover layers: `--btn-secondary`, `--btn-secondary-border`, `--state-hover`, `--state-selected`. `--state-selected` does not mark the current selection; that is a solid `--primary` fill (see below).
 - Dark blocks and overlays: `--ink`, `--on-ink`, `--hero-bg`, `--glass*`, `--scrim`.
 - Shadow, space, radius, motion and font: `--shadow-*`, `--space-*`, `--radius-*`, `--dur-*`, `--ease-*`, `--font`, `--mono`.
 

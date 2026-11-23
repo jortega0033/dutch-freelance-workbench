@@ -1,6 +1,6 @@
 # Owner decisions
 
-Decisions the owner made for this repository, on the date in the Date column. Each entry names the file that implements it. Changing an entry needs the owner; an agent that finds a decision blocking a ticket stops and says so.
+Decisions the owner made for this repository, on the date in the Date column. Each entry names the file that implements it. Entry 14 also holds items recommended by the orchestrator and adopted under the owner's delegation of 2026-11-23; the list below gives the source of each. Changing an entry needs the owner; an agent that finds a decision blocking a ticket stops and says so.
 
 | # | Decision | Date | Implemented in |
 | --- | --- | --- | --- |
@@ -17,7 +17,7 @@ Decisions the owner made for this repository, on the date in the Date column. Ea
 | 11 | Rust is verified in CI only. Not applicable: this repository has no Rust. | 2026-11-22 | None |
 | 12 | The ten UI rules in `docs/ui-quality.md` are binding; the `ui-ux-pro-max` and `unslop` skills are installed and used for UI work and for copy. | 2026-11-22 | `docs/ui-quality.md`, `.claude/skills/ui-ux-pro-max/`, `.claude/skills/unslop/`, `.claude/skills/implement-ticket/SKILL.md` |
 | 13 | Visual system: Pipenzo Flow look tokens (docs/design-tokens.md). SDLC kit version: jortega0033/sdlc-kit v1.0.0. | 2026-11-23 | `workbench/static/tokens.css`, `workbench/static/styles.css`, `docs/design-tokens.md` |
-| 14 | Token rules, 2026-11-23: D1 to D5 in the list below. | 2026-11-23 | `docs/design-tokens.md`, `docs/ui-quality.md` |
+| 14 | Token rules, 2026-11-23: D1 to D4. Only the yellow rule of D1 was decided by the owner; the How of D1 and D2 to D4 were recommended by the orchestrator and adopted under delegation (sources in Entry 14). | 2026-11-23 | `docs/design-tokens.md`, `docs/ui-quality.md` |
 
 ## Entry 10: open decisions settled by a ticket default
 
@@ -42,4 +42,3 @@ Source of each item is stated as given. Only D1's yellow rule was decided by the
 - D2 Focus ring: `--focus` is a focus indicator, exempt from the accent limit, including where it is yellow in dark. A ticket that says the focus style stays unchanged means the rule on main after the token pull request. Recommended by the orchestrator, adopted under the owner's delegation of 2026-11-23.
 - D3 Themes: contrast and no-colour-alone checks cover both the light and the dark block of `tokens.css`. Recommended by the orchestrator, adopted under the owner's delegation of 2026-11-23.
 - D4 Linking: a ticket that creates a page or its static allowlist links `tokens.css` before any other stylesheet and serves it (allowlist and its test). Recommended by the orchestrator, adopted under the owner's delegation of 2026-11-23.
-- D5 release-dependency-planner: while a plan is open only one yellow primary button shows; "New plan" (`#new-plan`) becomes neutral, in ticket #11. Recommended by the orchestrator, adopted under the owner's delegation of 2026-11-23.
