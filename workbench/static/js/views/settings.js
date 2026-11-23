@@ -29,7 +29,7 @@ function showForm(main, body, ctx, profile, flash) {
   });
   form.appendChild(h('h2', { id: 'settings-heading' }, profile ? 'Your profile' : 'Set up your profile'));
   form.appendChild(label.wrap);
-  form.appendChild(h('div', { class: 'actions' }, h('button', { type: 'submit', name: 'save' }, 'Save settings')));
+  form.appendChild(h('div', { class: 'actions' }, h('button', { type: 'submit', class: 'primary', name: 'save' }, 'Save settings')));
   const controls = { display_label: label };
 
   const ctl = attachSave({

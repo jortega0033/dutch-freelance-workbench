@@ -1,6 +1,6 @@
 # Owner decisions
 
-Decisions the owner made for this repository, all on 2026-11-22. Each entry names the file that implements it. Changing an entry needs the owner; an agent that finds a decision blocking a ticket stops and says so.
+Decisions the owner made for this repository, on the date in the Date column. Each entry names the file that implements it. Changing an entry needs the owner; an agent that finds a decision blocking a ticket stops and says so.
 
 | # | Decision | Date | Implemented in |
 | --- | --- | --- | --- |
@@ -16,6 +16,7 @@ Decisions the owner made for this repository, all on 2026-11-22. Each entry name
 | 10 | Open decisions on tickets are settled with the ticket's stated default; where a ticket states none, the conservative option is taken and flagged in the issue. | 2026-11-22 | Settled so far: see the list below |
 | 11 | Rust is verified in CI only. Not applicable: this repository has no Rust. | 2026-11-22 | None |
 | 12 | The ten UI rules in `docs/ui-quality.md` are binding; the `ui-ux-pro-max` and `unslop` skills are installed and used for UI work and for copy. | 2026-11-22 | `docs/ui-quality.md`, `.claude/skills/ui-ux-pro-max/`, `.claude/skills/unslop/`, `.claude/skills/implement-ticket/SKILL.md` |
+| 13 | Visual system: Pipenzo Flow look tokens (docs/design-tokens.md). SDLC kit version: jortega0033/sdlc-kit v1.0.0. | 2026-11-23 | `workbench/static/tokens.css`, `workbench/static/styles.css`, `docs/design-tokens.md` |
 
 ## Entry 10: open decisions settled by a ticket default
 

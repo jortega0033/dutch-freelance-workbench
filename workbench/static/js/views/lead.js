@@ -260,7 +260,7 @@ function renderLead(main, ctx, id, data, flash, back) {
   track(eChannel.input, (l) => l.source_channel);
   track(eSource.input, (l) => l.source_label || '');
   editForm.append(h('h2', { id: 'edit-heading' }, 'Edit details'), eLabel.wrap, eCountry.wrap, eMode.wrap, eChannel.wrap, eSource.wrap,
-    h('div', { class: 'actions' }, h('button', { type: 'submit', name: 'save' }, 'Save details')));
+    h('div', { class: 'actions' }, h('button', { type: 'submit', class: 'primary', name: 'save' }, 'Save details')));
   common(editForm, { label: eLabel, country_tag: eCountry, work_mode: eMode, source_channel: eChannel, source_label: eSource }, {}, 'PATCH', () => base,
     () => {
       const errors = [];
